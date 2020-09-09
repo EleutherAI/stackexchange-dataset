@@ -24,10 +24,10 @@ python3 main.py --names security.stackexchange
 To download a list of multiple stackexchanges, you can add the names separated by commas. E.G:
 
 ```
-python3 main.py --names ru.stackoverflow.com,money.stackexchange.com
+python3 main.py --names ru.stackoverflow,money.stackexchange
 ```
 
-The name should be the url of the stackoverflow site, minus `http(s)://` and `.com`. You can view all available stackoverflow dumps [here](https://archive.org/download/stackexchange)
+The name should be the url of the stackoverflow site, minus `http(s)://` and `.com`. You can view all available stackoverflow dumps [here](https://archive.org/download/stackexchange).
 
 ## All Usage Options:
 
