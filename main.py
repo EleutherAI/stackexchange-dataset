@@ -7,6 +7,7 @@ from pairer import QA_Pairer
 
 def download_and_process_single(name):
     try:
+        name = name.strip().lower()
         os.makedirs("dumps", exist_ok=True)
         s = Stack_Exchange_Downloader(name)
         s.download()
@@ -21,7 +22,7 @@ def download_and_process_single(name):
 
 def main(args):
     names = args.names.split(',')
-    if names[0]=="all":
+    if names[0].strip().lower() == "all":
         s = Stack_Exchange_Downloader("all")
         names = []
         for k in s.sites:
