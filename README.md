@@ -27,7 +27,7 @@ To download a list of multiple stackexchanges, you can add the names separated b
 python3 main.py --names ru.stackoverflow.com,money.stackexchange.com
 ```
 
-The name should be the url of the stackoverflow site, minus http(s):// and .com. You can view all available stackoverflow dumps [here](https://archive.org/download/stackexchange)
+The name should be the url of the stackoverflow site, minus `http(s)://` and `.com`. You can view all available stackoverflow dumps [here](https://archive.org/download/stackexchange)
 
 ## All Usage Options:
 
