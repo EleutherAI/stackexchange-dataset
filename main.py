@@ -4,10 +4,6 @@ from utils import *
 from downloader import Stack_Exchange_Downloader
 from pairer import QA_Pairer
 
-# TODO: should we add metadata to the text (i.e name of stackexchange & tags)?
-#       add flags to change min_score / max_responses args
-#       add flags to turn off downloading / extraction
-
 
 def download_and_process_single(name):
     try:
