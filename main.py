@@ -3,6 +3,7 @@ from multiprocessing import Pool, cpu_count
 from utils import *
 from downloader import Stack_Exchange_Downloader
 from pairer import QA_Pairer
+import os
 
 
 def download_and_process_single(name):
@@ -15,10 +16,13 @@ def download_and_process_single(name):
         try:
             os.remove("dumps/{}.7z".format(s.sites[name]["url"]))
         except FileNotFoundError:
-            print('ERROR: FileNotFoundError: File {} not found'.format(name.replace("https://", "").replace("http://", "").replace(".com", "")))
+            print('ERROR: FileNotFoundError: File {} not found'.format(s.sites[name]["url"]))
         path_to_xml = "dumps/{}/Posts.xml".format(name)
         qa = QA_Pairer(path_to_xml, name)
         qa.main()
+        filelist = [f for f in os.listdir("dumps/{}".format(name)) if f.endswith(".xml")]
+        for f in filelist:
+            os.remove(os.path.join("dumps/{}".format(name), f))
     except:
         traceback.print_exc()
 

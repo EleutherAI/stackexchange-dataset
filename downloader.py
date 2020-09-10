@@ -10,7 +10,7 @@ class Stack_Exchange_Downloader():
         :param name: name of stackexchange site to download. If all, will download all stackexchanges & metas.
         """
         sitesmap = requests.get("https://ia600107.us.archive.org/27/items/stackexchange/Sites.xml").content
-        self.name = name.replace("http://", "").replace("https://", "").replace(".com", "")
+        self.name = name.replace("http://", "").replace("https://", "").replace(".com", "").replace(".net", "")
         self.sites = {}
         self.parse_sitesmap(sitesmap)
 
@@ -18,7 +18,7 @@ class Stack_Exchange_Downloader():
         soup = BeautifulSoup(sitesmap, "lxml")
         for site in soup.find_all("row"):
             url = site['url'].replace("https://", "")
-            site_name = url.replace(".com", "")
+            site_name = url.replace(".com", "").replace(".net", "")
             download_link = "https://archive.org/download/stackexchange/" + url + ".7z"
             if url == "stackoverflow.com":
                 download_link = "https://archive.org/download/stackexchange/stackoverflow.com-Posts.7z"
