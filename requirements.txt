@@ -2,3 +2,5 @@ bs4
 lxml
 py7zr
 tqdm
+lm-dataformat
+jsonlines

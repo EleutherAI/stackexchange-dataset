@@ -4,11 +4,12 @@ from collections import defaultdict
 from bs4 import BeautifulSoup
 from tqdm import tqdm
 from utils import *
+from lm_dataformat import Archive
 
 
 class QA_Pairer():
 
-    def __init__(self, xml_path, name=None, out_folder="out", min_score=3, max_responses=3):
+    def __init__(self, xml_path, name=None, out_folder="out", min_score=3, max_responses=3, out_format="lm_dataformat"):
         """Makes a text dataset from StackExchange dumps"""
         self.xml_path = xml_path
         if name is None:
@@ -22,6 +23,11 @@ class QA_Pairer():
         # min_score required to parse an answer
         self.min_score = min_score
         self.max_responses = max_responses
+        assert out_format in ["txt", "lm_dataformat"], "Out format not recognized"
+        self.out_format = out_format
+        if out_format == "lm_dataformat":
+            self.ar = Archive(out_folder)
+
 
     def main(self):
         """iterates through SE xmls and:
@@ -54,6 +60,8 @@ class QA_Pairer():
                     self.check_complete()
                 except:
                     traceback.print_exc()
+        if self.out_format == "lm_dataformat":
+            self.ar.commit()
 
     def is_above_threshold(self, a_attribs):
         """
@@ -127,8 +135,11 @@ class QA_Pairer():
                                     break
                                 out_str += 'A:\n\n{}\n\n'.format(BeautifulSoup(value["Answers"][k]["Body"], "html.parser").get_text())
                                 count += 1
-
-                        with open(out_name, 'w') as f:
-                            f.write(filter_newlines(out_str))
+                        if self.out_format == "txt":
+                            with open(out_name, 'w') as f:
+                                f.write(filter_newlines(out_str))
+                        elif self.out_format == "lm_dataformat":
+                            self.ar.add_data(filter_newlines(out_str), meta={
+                                'name': out_name})
         for key in keys_to_del:
             self.questions.pop(key, None)
