@@ -61,7 +61,7 @@ class QA_Pairer():
                 except:
                     traceback.print_exc()
         if self.out_format == "lm_dataformat":
-            self.ar.commit()
+            self.ar.commit(archive_name=self.name)
 
     def is_above_threshold(self, a_attribs):
         """
