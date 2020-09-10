@@ -40,13 +40,13 @@ class Stack_Exchange_Downloader():
     def extract(self):
         if self.name == "all":
             for k in self.sites:
-                command = "py7zr x --verbose dumps/{} dumps/{}".format(self.sites[k]["download"].replace("https://archive.org/download/stackexchange/", ""),
+                command = "py7zr x dumps/{} dumps/{}".format(self.sites[k]["download"].replace("https://archive.org/download/stackexchange/", ""),
                                                        k)
                 print(command)
                 if os.system(command):
                     print('Extraction for {} failed!'.format(k))
         else:
-            command = "py7zr x --verbose dumps/{} dumps/{}".format(self.sites[self.name]["download"].replace("https://archive.org/download/stackexchange/", ""),
+            command = "py7zr x dumps/{} dumps/{}".format(self.sites[self.name]["download"].replace("https://archive.org/download/stackexchange/", ""),
                                                       self.name)
             print(command)
             if os.system(command):

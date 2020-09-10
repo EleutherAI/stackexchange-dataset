@@ -12,7 +12,10 @@ def download_and_process_single(name):
         s = Stack_Exchange_Downloader(name)
         s.download()
         s.extract()
-        os.remove("dumps/{}.com.7z".format(name.replace("https://", "").replace("http://", "").replace(".com", "")))
+        try:
+            os.remove("dumps/{}.7z".format(s.sites[name]["url"]))
+        except FileNotFoundError:
+            print('ERROR: FileNotFoundError: File {} not found'.format(name.replace("https://", "").replace("http://", "").replace(".com", "")))
         path_to_xml = "dumps/{}/Posts.xml".format(name)
         qa = QA_Pairer(path_to_xml, name)
         qa.main()

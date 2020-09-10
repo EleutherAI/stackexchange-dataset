@@ -9,7 +9,7 @@ from lm_dataformat import Archive
 
 class QA_Pairer():
 
-    def __init__(self, xml_path, name=None, out_folder="out", min_score=3, max_responses=3, out_format="lm_dataformat"):
+    def __init__(self, xml_path, name=None, out_folder="out", min_score=3, max_responses=3, out_format="txt"):
         """Makes a text dataset from StackExchange dumps"""
         self.xml_path = xml_path
         if name is None:
