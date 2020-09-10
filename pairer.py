@@ -137,7 +137,10 @@ class QA_Pairer():
                                 count += 1
                         if self.out_format == "txt":
                             with open(out_name, 'w') as f:
-                                f.write(filter_newlines(out_str))
+                                try:
+                                    f.write(filter_newlines(out_str))
+                                except:
+                                    f.write(filter_newlines(handle_unicode_errors(out_str)))
                         elif self.out_format == "lm_dataformat":
                             self.ar.add_data(filter_newlines(out_str), meta={
                                 'name': out_name})

@@ -4,6 +4,8 @@ import os, re
 def header_info(xml_path):
     os.system("head {}".format(xml_path))
 
+def handle_unicode_errors(txt):
+    return txt.encode('utf-8', 'replace').decode()
 
 def is_question(elem_attribs):
     if elem_attribs["PostTypeId"] is not None:
