@@ -51,3 +51,5 @@ optional arguments:
 - [ ] add flags to change min_score / max_responses args.
 - [ ] add flags to turn off downloading / extraction
 - [ ] add flags to select number of workers for multiprocessing
+- [ ] output as [lm dataformat](https://github.com/leogao2/lm_dataformat)
+
