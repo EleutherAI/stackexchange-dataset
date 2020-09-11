@@ -34,6 +34,9 @@ def main(args):
         names = []
         for k in s.sites:
             names.append(k)
+        # bring stackoverflow to the front so it is always processed first, since it's the largest
+        if "stackoverflow" in names:
+            names.insert(0, names.pop(names.index("stackoverflow")))
     print('Downloading and processing stackexchange dumps for {}'.format(names))
     # init pool with as many CPUs as available
     cpu_no = cpu_count() - 1
