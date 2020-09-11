@@ -40,7 +40,7 @@ class QA_Pairer():
 
         """
         os.makedirs(self.out_folder, exist_ok=True)
-        for event, elem in tqdm(etree.iterparse(self.xml_path, events=('start',)), desc="Parsing {} XML file".format(self.name)):
+        for event, elem in tqdm(etree.iterparse(self.xml_path, events=('end',)), desc="Parsing {} XML file".format(self.name)):
             if elem.tag == "row":
                 try:
                     attribs = defaultdict(lambda: None, elem.attrib)
@@ -56,9 +56,11 @@ class QA_Pairer():
                         # if the answer's score > min_score
                         # append the answer to the relevant question's OtherAnswers dict
                         self.add_answer(attribs)
-                    self.check_complete()
+                        self.check_complete(attribs)
+                    elem.clear()
                 except:
                     traceback.print_exc()
+
         if self.out_format == "lm_dataformat":
             self.ar.commit(archive_name=self.name)
 
@@ -102,37 +104,35 @@ class QA_Pairer():
             else:
                 self.questions[a_attribs["ParentId"]]["ParsedAnswers"] += 1
 
-    def check_complete(self):
+    def check_complete(self, a_attribs):
         """
-        checks if any questions' 'ParsedAnswers' = 'AnswerCount'.
-        if it has any answers above threshold, write the Q/As out to file,
-        then deletes from questions dict.
+        checks if the parent question of the previously added answer has no future answers, and if so,
+        removes from dict and prints to file.
         """
-        # check if any questions' 'ParsedAnswers' = 'AnswerCount'
-        # if so, write them out to file, and delete
         keys_to_del = []
-        for key, value in self.questions.items():
-            if value is not None and value["AnswerCount"] is not None and value["ParsedAnswers"] is not None:
-                if int(value["ParsedAnswers"]) == int(value['AnswerCount']):
-                    keys_to_del.append(key)
-                    if value["Answers"] is not None and len(value["Answers"]) > 0:
-                        out_name = "{}/{}_{}.txt".format(self.out_folder, self.name, value["Id"].zfill(10))
+        parent = self.questions[a_attribs["ParentId"]]
+        if a_attribs is not None and parent is not None:
+            if parent["AnswerCount"] is not None and parent["ParsedAnswers"] is not None:
+                if int(parent["ParsedAnswers"]) == int(parent['AnswerCount']):
+                    keys_to_del.append(a_attribs["ParentId"])
+                    if parent["Answers"] is not None and len(parent["Answers"]) > 0:
+                        out_name = "{}/{}_{}.txt".format(self.out_folder, self.name, parent["Id"].zfill(10))
                         out_str = ""
                         out_str += 'Q:\n\n'
-                        if value["Title"] is not None:
-                            out_str += '{}\n\n'.format(BeautifulSoup(value["Title"], "html.parser").get_text())
-                        if value["Body"] is not None:
-                            out_str += '{}\n\n'.format(BeautifulSoup(value["Body"], "html.parser").get_text())
-                        if value["Answers"] is not None:
+                        if parent["Title"] is not None:
+                            out_str += '{}\n\n'.format(BeautifulSoup(parent["Title"], "html.parser").get_text())
+                        if parent["Body"] is not None:
+                            out_str += '{}\n\n'.format(BeautifulSoup(parent["Body"], "html.parser").get_text())
+                        if parent["Answers"] is not None:
                             key_score_dict = {}
-                            for k, a in value["Answers"].items():
+                            for k, a in parent["Answers"].items():
                                 key_score_dict[k] = int(a["Score"])
                             key_score_dict = {k: v for k, v in sorted(key_score_dict.items(), key=lambda item: item[1], reverse=True)}
                             count = 0
                             for k in key_score_dict:
                                 if count >= self.max_responses:
                                     break
-                                out_str += 'A:\n\n{}\n\n'.format(BeautifulSoup(value["Answers"][k]["Body"], "html.parser").get_text())
+                                out_str += 'A:\n\n{}\n\n'.format(BeautifulSoup(parent["Answers"][k]["Body"], "html.parser").get_text())
                                 count += 1
                         if self.out_format == "txt":
                             with open(out_name, 'w') as f:

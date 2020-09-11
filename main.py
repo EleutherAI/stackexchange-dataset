@@ -48,7 +48,7 @@ if __name__ == "__main__":
                     'question-answer pair text dataset for Language Models')
     parser.add_argument('--names', help='names of stackexchanges to download, extract & parse, separated by commas. '
                                         'If "all", will download, extract & parse *every* stackoverflow site',
-                        default="3dprinting.meta.stackexchange",
+                        default="3dprinting.stackexchange",
                         type=str)
     args = parser.parse_args()
     main(args)
