@@ -28,7 +28,6 @@ class QA_Pairer():
         if out_format == "lm_dataformat":
             self.ar = Archive(out_folder)
 
-
     def main(self):
         """iterates through SE xmls and:
 
@@ -41,7 +40,7 @@ class QA_Pairer():
 
         """
         os.makedirs(self.out_folder, exist_ok=True)
-        for event, elem in tqdm(etree.iterparse(self.xml_path, events=('start',)), desc="Parsing XML"):
+        for event, elem in tqdm(etree.iterparse(self.xml_path, events=('start',)), desc="Parsing {} XML file".format(self.name)):
             if elem.tag == "row":
                 try:
                     attribs = defaultdict(lambda: None, elem.attrib)
