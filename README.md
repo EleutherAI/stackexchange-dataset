@@ -12,7 +12,7 @@ pip install -r requirements.txt
 To download *every* stackexchange dump & parse to text, simply run
 
 ```
-python3 main.py
+python3 main.py --names all
 ```
 
 To download only a single stackexchange, you can add the name as an optional argument. E.G: 
