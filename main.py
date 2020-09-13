@@ -6,6 +6,7 @@ from pairer import QA_Pairer
 import os
 from itertools import repeat
 from lm_dataformat import Archive
+import zipfile
 
 
 def download_and_process_single(name, out_format, min_score, max_responses):
@@ -25,10 +26,14 @@ def download_and_process_single(name, out_format, min_score, max_responses):
         if out_format == "lm_dataformat":
             os.makedirs(out_folder, exist_ok=True)
             archiver = Archive(out_folder)
+        elif out_format == "zip":
+            archiver = None
         else:
             archiver = None
         qa = QA_Pairer(path_to_xml, name=name, out_format=out_format, archiver=archiver, min_score=min_score, max_responses=max_responses)
         qa.main()
+        if out_format == "lm_dataformat":
+            archiver.commit(name)
         try:
             os.remove(path_to_7z)
         except FileNotFoundError:
@@ -68,7 +73,7 @@ if __name__ == "__main__":
                         type=str)
     parser.add_argument('--out_format', help='format of out file - if you are processing everything this will need to be '
                                              'lm_dataformat, as you will run into number of files per directory limits.',
-                        default="lm_dataformat",
+                        default="zip",
                         type=str)
     parser.add_argument('--min_score', help='minimum score of a response in order to be included in the dataset. Default 3.',
                         type=int, default=3)

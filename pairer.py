@@ -4,7 +4,7 @@ from collections import defaultdict
 from bs4 import BeautifulSoup
 from tqdm import tqdm
 from utils import *
-
+import zipfile
 
 class QA_Pairer():
 
@@ -22,7 +22,7 @@ class QA_Pairer():
         # min_score required to parse an answer
         self.min_score = min_score
         self.max_responses = max_responses
-        assert out_format in ["txt", "lm_dataformat"], "Out format not recognized"
+        assert out_format in ["txt", "lm_dataformat", "zip"], "Out format not recognized"
         self.out_format = out_format
         if out_format == "lm_dataformat":
             assert archiver is not None
@@ -60,8 +60,6 @@ class QA_Pairer():
                     elem.clear()
                 except:
                     traceback.print_exc()
-        # if self.out_format == "lm_dataformat":
-        #     self.ar.commit(archive_name=self.name)
 
     def is_above_threshold(self, a_attribs):
         """
@@ -115,7 +113,7 @@ class QA_Pairer():
                 if int(parent["ParsedAnswers"]) == int(parent['AnswerCount']):
                     keys_to_del.append(a_attribs["ParentId"])
                     if parent["Answers"] is not None and len(parent["Answers"]) > 0:
-                        out_name = "{}/{}_{}.txt".format(self.out_folder, self.name, parent["Id"].zfill(10))
+                        out_name = "{}_{}.txt".format(self.name, parent["Id"].zfill(10))
                         out_str = ""
                         out_str += 'Q:\n\n'
                         if parent["Title"] is not None:
@@ -134,11 +132,14 @@ class QA_Pairer():
                                 out_str += 'A:\n\n{}\n\n'.format(BeautifulSoup(parent["Answers"][k]["Body"], "html.parser").get_text())
                                 count += 1
                         if self.out_format == "txt":
-                            with open(out_name, 'w') as f:
+                            with open("{}/{}".format(self.out_folder, out_name), 'w') as f:
                                 try:
                                     f.write(filter_newlines(out_str))
                                 except:
                                     f.write(filter_newlines(handle_unicode_errors(out_str)))
+                        elif self.out_format == "zip":
+                            with zipfile.ZipFile('{}/{}.zip'.format(self.out_folder, self.name), 'a') as myzip:
+                                myzip.writestr(out_name, filter_newlines(out_str))
                         elif self.out_format == "lm_dataformat":
                             self.ar.add_data(filter_newlines(out_str), meta={
                                 'name': out_name})
