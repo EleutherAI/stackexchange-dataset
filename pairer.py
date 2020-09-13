@@ -4,7 +4,7 @@ from collections import defaultdict
 from bs4 import BeautifulSoup
 from tqdm import tqdm
 from utils import *
-import zipfile
+
 
 class QA_Pairer():
 
@@ -138,9 +138,16 @@ class QA_Pairer():
                                 except:
                                     f.write(filter_newlines(handle_unicode_errors(out_str)))
                         elif self.out_format == "zip":
-                            self.ar.writestr(out_name, filter_newlines(out_str))
+                            try:
+                                self.ar.writestr(out_name, filter_newlines(out_str))
+                            except:
+                                self.ar.writestr(out_name, filter_newlines(handle_unicode_errors(out_str)))
                         elif self.out_format == "lm_dataformat":
-                            self.ar.add_data(filter_newlines(out_str), meta={
-                                'name': out_name})
+                            try:
+                                self.ar.add_data(filter_newlines(out_str), meta={
+                                    'name': out_name})
+                            except:
+                                self.ar.add_data(filter_newlines(handle_unicode_errors(out_str)), meta={
+                                    'name': out_name})
         for key in keys_to_del:
             self.questions.pop(key, None)
