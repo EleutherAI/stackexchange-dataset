@@ -24,7 +24,7 @@ class QA_Pairer():
         self.max_responses = max_responses
         assert out_format in ["txt", "lm_dataformat", "zip"], "Out format not recognized"
         self.out_format = out_format
-        if out_format == "lm_dataformat":
+        if out_format in ["lm_dataformat", "zip"]:
             assert archiver is not None
             self.ar = archiver
 
@@ -138,8 +138,7 @@ class QA_Pairer():
                                 except:
                                     f.write(filter_newlines(handle_unicode_errors(out_str)))
                         elif self.out_format == "zip":
-                            with zipfile.ZipFile('{}/{}.zip'.format(self.out_folder, self.name), 'a') as myzip:
-                                myzip.writestr(out_name, filter_newlines(out_str))
+                            self.ar.writestr(out_name, filter_newlines(out_str))
                         elif self.out_format == "lm_dataformat":
                             self.ar.add_data(filter_newlines(out_str), meta={
                                 'name': out_name})

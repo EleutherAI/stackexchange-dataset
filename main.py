@@ -16,7 +16,7 @@ def download_and_process_single(name, out_format, min_score, max_responses):
         s = Stack_Exchange_Downloader(name)
         path_to_xml = "dumps/{}/Posts.xml".format(name)
         path_to_7z = "dumps/{}.7z".format(s.sites[name]["url"])
-        out_folder = "out/{}".format(name)
+        out_folder = "out".format(name)
         if not os.path.isfile(path_to_7z):
             # download 7z if it's not downloaded already
             s.download()
@@ -27,13 +27,16 @@ def download_and_process_single(name, out_format, min_score, max_responses):
             os.makedirs(out_folder, exist_ok=True)
             archiver = Archive(out_folder)
         elif out_format == "zip":
-            archiver = None
+            archiver = zipfile.ZipFile('{}/{}.zip'.format(out_folder, name), 'a')
+            os.makedirs(out_folder, exist_ok=True)
         else:
             archiver = None
         qa = QA_Pairer(path_to_xml, name=name, out_format=out_format, archiver=archiver, min_score=min_score, max_responses=max_responses)
         qa.main()
         if out_format == "lm_dataformat":
             archiver.commit(name)
+        elif out_format == "zip":
+            archiver.close()
         try:
             os.remove(path_to_7z)
         except FileNotFoundError:
