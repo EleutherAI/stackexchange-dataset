@@ -17,6 +17,7 @@ def download_and_process_single(name, out_format, min_score, max_responses):
         path_to_xml = "dumps/{}/Posts.xml".format(name)
         path_to_7z = "dumps/{}.7z".format(s.sites[name]["url"])
         out_folder = "out".format(name)
+        os.makedirs(out_folder, exist_ok=True)
         if not os.path.isfile(path_to_7z):
             # download 7z if it's not downloaded already
             s.download()
@@ -24,11 +25,9 @@ def download_and_process_single(name, out_format, min_score, max_responses):
             # extract 7z if it's not extracted already
             s.extract()
         if out_format == "lm_dataformat":
-            os.makedirs(out_folder, exist_ok=True)
             archiver = Archive(out_folder)
         elif out_format == "zip":
             archiver = zipfile.ZipFile('{}/{}.zip'.format(out_folder, name), 'a')
-            os.makedirs(out_folder, exist_ok=True)
         else:
             archiver = None
         qa = QA_Pairer(path_to_xml, name=name, out_format=out_format, archiver=archiver, min_score=min_score, max_responses=max_responses)
