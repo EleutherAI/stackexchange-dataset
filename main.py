@@ -27,7 +27,7 @@ def download_and_process_single(name, out_format, min_score, max_responses):
             archiver = Archive(out_folder)
         else:
             archiver = None
-        qa = QA_Pairer(path_to_xml, out_format=out_format, archiver=archiver, min_score=min_score, max_responses=max_responses)
+        qa = QA_Pairer(path_to_xml, name=name, out_format=out_format, archiver=archiver, min_score=min_score, max_responses=max_responses)
         qa.main()
         try:
             os.remove(path_to_7z)

@@ -12,7 +12,7 @@ class QA_Pairer():
         """Makes a text dataset from StackExchange dumps"""
         self.xml_path = xml_path
         if name is None:
-            self.name = os.path.dirname(xml_path).replace("dumps/")
+            self.name = os.path.dirname(xml_path).replace("dumps/", "")
         else:
             self.name = name
         # dict to save questions
