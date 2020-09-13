@@ -13,15 +13,20 @@ def download_and_process_single(name, archiver, min_score, max_responses):
         name = name.strip().lower()
         os.makedirs("dumps", exist_ok=True)
         s = Stack_Exchange_Downloader(name)
-        s.download()
-        s.extract()
-        try:
-            os.remove("dumps/{}.7z".format(s.sites[name]["url"]))
-        except FileNotFoundError:
-            print('ERROR: FileNotFoundError: File {} not found'.format(s.sites[name]["url"]))
         path_to_xml = "dumps/{}/Posts.xml".format(name)
+        path_to_7z = "dumps/{}.7z".format(s.sites[name]["url"])
+        if not os.path.isfile(path_to_7z):
+            # download 7z if it's not downloaded already
+            s.download()
+        if not os.path.isfile(path_to_xml):
+            # extract 7z if it's not extracted already
+            s.extract()
         qa = QA_Pairer(path_to_xml, out_format=archiver[0], archiver=archiver[1], min_score=min_score, max_responses=max_responses)
         qa.main()
+        try:
+            os.remove(path_to_7z)
+        except FileNotFoundError:
+            print('ERROR: FileNotFoundError: File {} not found'.format(s.sites[name]["url"]))
         filelist = [f for f in os.listdir("dumps/{}".format(name)) if f.endswith(".xml")]
         for f in filelist:
             os.remove(os.path.join("dumps/{}".format(name), f))
