@@ -8,20 +8,26 @@ from itertools import repeat
 from lm_dataformat import Archive
 
 
-def download_and_process_single(name, archiver, min_score, max_responses):
+def download_and_process_single(name, out_format, min_score, max_responses):
     try:
         name = name.strip().lower()
         os.makedirs("dumps", exist_ok=True)
         s = Stack_Exchange_Downloader(name)
         path_to_xml = "dumps/{}/Posts.xml".format(name)
         path_to_7z = "dumps/{}.7z".format(s.sites[name]["url"])
+        out_folder = "out/{}".format(name)
         if not os.path.isfile(path_to_7z):
             # download 7z if it's not downloaded already
             s.download()
         if not os.path.isfile(path_to_xml):
             # extract 7z if it's not extracted already
             s.extract()
-        qa = QA_Pairer(path_to_xml, out_format=archiver[0], archiver=archiver[1], min_score=min_score, max_responses=max_responses)
+        if out_format == "lm_dataformat":
+            os.makedirs(out_folder, exist_ok=True)
+            archiver = Archive(out_folder)
+        else:
+            archiver = None
+        qa = QA_Pairer(path_to_xml, out_format=out_format, archiver=archiver, min_score=min_score, max_responses=max_responses)
         qa.main()
         try:
             os.remove(path_to_7z)
@@ -44,17 +50,12 @@ def main(args):
         # bring stackoverflow to the front so it is always processed first, since it's the largest
         if "stackoverflow" in names:
             names.insert(0, names.pop(names.index("stackoverflow")))
-    if args.out_format == "lm_dataformat":
-        archiver = ("lm_dataformat", Archive("out"))
-    else:
-        archiver = ("txt", None)
-
     print('Downloading and processing stackexchange dumps for {}'.format(names))
     # Download & Process
     # init pool with as many CPUs as available
     cpu_no = cpu_count() - 1
     p = Pool(cpu_no)
-    p.starmap(download_and_process_single, zip(names, repeat(archiver), repeat(args.min_score), repeat(args.max_responses)))
+    p.starmap(download_and_process_single, zip(names, repeat(args.out_format), repeat(args.min_score), repeat(args.max_responses)))
 
 
 if __name__ == "__main__":
