@@ -4,12 +4,11 @@ from collections import defaultdict
 from bs4 import BeautifulSoup
 from tqdm import tqdm
 from utils import *
-from lm_dataformat import Archive
 
 
 class QA_Pairer():
 
-    def __init__(self, xml_path, name=None, out_folder="out", min_score=3, max_responses=3, out_format="txt"):
+    def __init__(self, xml_path, name=None, out_folder="out", min_score=3, max_responses=3, out_format="txt", archiver=None):
         """Makes a text dataset from StackExchange dumps"""
         self.xml_path = xml_path
         if name is None:
@@ -26,7 +25,8 @@ class QA_Pairer():
         assert out_format in ["txt", "lm_dataformat"], "Out format not recognized"
         self.out_format = out_format
         if out_format == "lm_dataformat":
-            self.ar = Archive(out_folder)
+            assert archiver is not None
+            self.ar = archiver
 
     def main(self):
         """iterates through SE xmls and:
@@ -60,9 +60,8 @@ class QA_Pairer():
                     elem.clear()
                 except:
                     traceback.print_exc()
-
-        if self.out_format == "lm_dataformat":
-            self.ar.commit(archive_name=self.name)
+        # if self.out_format == "lm_dataformat":
+        #     self.ar.commit(archive_name=self.name)
 
     def is_above_threshold(self, a_attribs):
         """

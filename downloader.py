@@ -1,6 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 from utils import *
+import py7zr
 
 
 class Stack_Exchange_Downloader():
@@ -22,7 +23,7 @@ class Stack_Exchange_Downloader():
             download_link = "https://archive.org/download/stackexchange/" + url + ".7z"
             if url == "stackoverflow.com":
                 download_link = "https://archive.org/download/stackexchange/stackoverflow.com-Posts.7z"
-            self.sites[site_name] = {"url":url, "download":download_link}
+            self.sites[site_name] = {"url" : url, "download" : download_link}
 
     def download(self):
         if self.name == "all":
@@ -40,12 +41,21 @@ class Stack_Exchange_Downloader():
     def extract(self):
         if self.name == "all":
             for k in self.sites:
+                # archive = py7zr.SevenZipFile('dumps/{}'.format(self.sites[k]["download"].replace("https://archive.org/download/stackexchange/", "")
+                #                                                , mode='r'))
+                # archive.extractall()
+                # archive.close()
                 command = "py7zr x dumps/{} dumps/{}".format(self.sites[k]["download"].replace("https://archive.org/download/stackexchange/", ""),
                                                        k)
                 print(command)
                 if os.system(command):
                     print('Extraction for {} failed!'.format(k))
         else:
+            # archive = py7zr.SevenZipFile(
+            #     'dumps/{}'.format(self.sites[self.name]["download"].replace("https://archive.org/download/stackexchange/", "")
+            #                       , mode='r'))
+            # archive.extractall()
+            # archive.close()
             command = "py7zr x dumps/{} dumps/{}".format(self.sites[self.name]["download"].replace("https://archive.org/download/stackexchange/", ""),
                                                       self.name)
             print(command)
