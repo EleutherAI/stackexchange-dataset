@@ -1,6 +1,8 @@
 # stackexchange_dataset
 A python tool for downloading & processing the [stackexchange data dumps](https://archive.org/details/stackexchange) into a text dataset for Language Models.
 
+Download the whole processed dataset [here](https://eaidata.bmk.sh/data/stackexchange_dataset.tar)
+
 # Setup
 ```
 git clone https://github.com/EleutherAI/stackexchange_dataset/
