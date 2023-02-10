@@ -18,8 +18,8 @@ def download_and_process_single(name, out_format, min_score, max_responses):
         if name != "stackoverflow":
             path_to_7z = "dumps/{}.7z".format(s.sites[name]["url"])
         else:
-            path_to_7z = "dumps/stackoverflow.com-Posts.7z"
-        out_folder = "out".format(name)
+            path_to_7z = "dumps/Stackoverflow.com-Posts.7z"
+        out_folder = "out"
         os.makedirs(out_folder, exist_ok=True)
         if not os.path.isfile(path_to_7z):
             # download 7z if it's not downloaded already

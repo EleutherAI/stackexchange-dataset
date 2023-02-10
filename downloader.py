@@ -22,7 +22,7 @@ class Stack_Exchange_Downloader():
             site_name = url.replace(".com", "").replace(".net", "")
             download_link = "https://archive.org/download/stackexchange/" + url + ".7z"
             if url == "stackoverflow.com":
-                download_link = "https://archive.org/download/stackexchange/stackoverflow.com-Posts.7z"
+                download_link = "https://archive.org/download/stackexchange/Stackoverflow.com-Posts.7z"
             self.sites[site_name] = {"url" : url, "download" : download_link}
 
     def download(self):
