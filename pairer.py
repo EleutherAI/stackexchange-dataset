@@ -8,7 +8,7 @@ from utils import *
 
 class QA_Pairer():
 
-    def __init__(self, xml_path, name=None, out_folder="out", min_score=3, max_responses=3, out_format="txt", archiver=None):
+    def __init__(self, xml_path, name=None, out_folder="out", min_score=3, max_responses=3, out_format="txt", archiver=None, chk_tags=""):
         """Makes a text dataset from StackExchange dumps"""
         self.xml_path = xml_path
         if name is None:
@@ -27,6 +27,7 @@ class QA_Pairer():
         if out_format in ["lm_dataformat", "zip"]:
             assert archiver is not None
             self.ar = archiver
+        self.chk_tags = chk_tags
         self.sample = True 
         self.num_discarded_answers = 0
         self.num_discarded_questions = 0
@@ -51,7 +52,7 @@ class QA_Pairer():
                     attribs = defaultdict(lambda: None, elem.attrib)
                     # checks if PostTypeId=1
                     if is_question(attribs):
-                        if has_answers(attribs):
+                        if has_answers(attribs) and match_tags_or(attribs, self.chk_tags):
                             # trim post data to  ['Id', 'Body', 'Title', 'Tags', 'AnswerCount', 'AcceptedAnswerId', 'PostTypeId']
                             # other potentially usuful keys: ['CreationDate',  'Score', 'ViewCount', 'OwnerUserId', 'LastActivityDate', 'CommentCount', 'ContentLicense']
                             trim_attribs(attribs, "question")

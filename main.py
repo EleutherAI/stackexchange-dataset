@@ -10,7 +10,7 @@ import zipfile
 import os
 
 curr_dir  = os.path.dirname(__file__)
-def download_and_process_single(name, out_format, min_score, max_responses):
+def download_and_process_single(name, out_format, min_score, max_responses, chk_tags):
     try:
         name = name.strip().lower()
         os.makedirs("{}/dumps".format(curr_dir), exist_ok=True)
@@ -40,7 +40,7 @@ def download_and_process_single(name, out_format, min_score, max_responses):
         else:
             archiver = None
 
-        qa = QA_Pairer(path_to_xml, name=name, out_folder=out_folder, out_format=out_format, archiver=archiver, min_score=min_score, max_responses=max_responses)
+        qa = QA_Pairer(path_to_xml, name=name, out_folder=out_folder, out_format=out_format, archiver=archiver, min_score=min_score, max_responses=max_responses, chk_tags=chk_tags)
         qa.main()
         if out_format == "lm_dataformat":
             archiver.commit(name)
@@ -58,20 +58,21 @@ def download_and_process_single(name, out_format, min_score, max_responses):
 
 
 def main(args):
-    names = args.names.split(',')
+    names = args.names.split(',')    
+    tags = args.tags.split(',') if len(args.tags) else []
     if names[0].strip().lower() == "all":
         s = Stack_Exchange_Downloader("all")
         names = []
         for k in s.sites:
             names.append(k)
         print('Removing stackoverflow from the list of sites to process. Process it separately.')
-        names.pop(names.index("stackoverflow"))
+        names.pop(names.index("stackoverflow"))        
     print('Downloading and processing stackexchange dumps for {}'.format(names))
     # Download & Process
     # init pool with as many CPUs as available
     cpu_no = cpu_count() - 1
     p = Pool(cpu_no)
-    p.starmap(download_and_process_single, zip(names, repeat(args.out_format), repeat(args.min_score), repeat(args.max_responses)))
+    p.starmap(download_and_process_single, zip(names, repeat(args.out_format), repeat(args.min_score), repeat(args.max_responses)), repeat(tags))
 
 
 if __name__ == "__main__":
@@ -100,6 +101,12 @@ if __name__ == "__main__":
         help='maximum number of responses (sorted by score) to include for each question. Default 100.', 
         type=int, 
         default=100
+    )
+    parser.add_argument(
+        '--tags', 
+        help='list of tags to include.', 
+        type=str, 
+        default=""
     )
     args = parser.parse_args()
     main(args)
