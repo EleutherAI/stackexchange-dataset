@@ -8,7 +8,7 @@ from utils import *
 
 class QA_Pairer():
 
-    def __init__(self, xml_path, name=None, out_folder="out", min_score=3, max_responses=3, out_format="txt", archiver=None, chk_tags=""):
+    def __init__(self, xml_path, name=None, out_folder="out", min_score=3, max_responses=3, out_format="txt", archiver=None):
         """Makes a text dataset from StackExchange dumps"""
         self.xml_path = xml_path
         if name is None:
@@ -27,8 +27,9 @@ class QA_Pairer():
         if out_format in ["lm_dataformat", "zip"]:
             assert archiver is not None
             self.ar = archiver
-        self.chk_tags = chk_tags
         self.sample = True 
+        self.num_posts = 0
+        self.num_nonQA_posts = 0
         self.num_discarded_answers = 0
         self.num_discarded_questions = 0
         self.num_questions = 0
@@ -45,16 +46,15 @@ class QA_Pairer():
             > Delete from memory
 
         """
-        os.makedirs(self.out_folder, exist_ok=True)
-        i=0
+        os.makedirs(self.out_folder, exist_ok=True)        
         for event, elem in tqdm(etree.iterparse(self.xml_path, events=('end',)), desc="Parsing {} XML file".format(self.name), disable=True):
             if elem.tag == "row":
                 try:
                     attribs = defaultdict(lambda: None, elem.attrib)
-                    i=i+1
+                    self.num_posts += 1
                     # checks if PostTypeId=1
                     if is_question(attribs):
-                        if has_answers(attribs) and match_tags_or(attribs, self.chk_tags):
+                        if has_answers(attribs):
                             # trim post data to  ['Id', 'Body', 'Title', 'Tags', 'AnswerCount', 'AcceptedAnswerId', 'PostTypeId']
                             # other potentially usuful keys: ['CreationDate',  'Score', 'ViewCount', 'OwnerUserId', 'LastActivityDate', 'CommentCount', 'ContentLicense']
                             trim_attribs(attribs, "question")
@@ -69,12 +69,16 @@ class QA_Pairer():
                         # if the answer's score > min_score append the answer to the relevant question's OtherAnswers dict
                         self.add_answer(attribs)
                         self.check_complete(attribs)
+                    else:
+                        self.num_nonQA_posts += 1
                     elem.clear()
                 except:
                     traceback.print_exc()
+        
         print("##### Stats #####")
         print(f"num_questions={self.num_questions}, num_discarded_questions={self.num_discarded_questions}")
         print(f"num_answers={self.num_answers}, num_discarded_answers={self.num_discarded_answers}")
+        print(f"num_posts={self.num_posts}, num_nonQA_posts={self.num_nonQA_posts}, unprocessed_questions={len(self.questions.items())}")
         print("###### End ######")
 
     def is_above_threshold(self, a_attribs):
@@ -100,7 +104,7 @@ class QA_Pairer():
         :param a_attribs: Answer's attribute dict
         """
         assert is_answer(a_attribs), "Must be an answer to add to parent"
-        if a_attribs is not None and self.questions.get(a_attribs["ParentId"], None) is not None:
+        if self.questions.get(a_attribs["ParentId"], None) is not None:
             if is_accepted_answer(a_attribs, self.questions[a_attribs["ParentId"]]):
                 self.questions[a_attribs["ParentId"]]["Answers"][a_attribs["Id"]] = trim_attribs(a_attribs, "answer")
                 self.questions[a_attribs["ParentId"]]["ParsedAnswers"] += 1
@@ -112,9 +116,15 @@ class QA_Pairer():
                         self.questions[a_attribs["ParentId"]]["ParsedAnswers"] += 1
                 else:
                     self.questions[a_attribs["ParentId"]]["ParsedAnswers"] += 1
-            else:
+            else:                
                 self.num_discarded_answers += 1 
+                # print("Discarded answer with score {}".format(a_attribs["Score"]), self.num_discarded_answers)
+                self.questions[a_attribs["ParentId"]]["NonAnswers"][a_attribs["Id"]] = trim_attribs(a_attribs, "answer")
                 self.questions[a_attribs["ParentId"]]["ParsedAnswers"] += 1
+        else: 
+            parentid = a_attribs["ParentId"]            
+            self.num_discarded_answers += 1
+            # print(f"ParentId {parentid} not found", self.num_discarded_answers)
 
     def check_complete(self, a_attribs):
         """
@@ -124,10 +134,12 @@ class QA_Pairer():
         keys_to_del = []
         parent = self.questions.get(a_attribs["ParentId"], None)
         if a_attribs is not None and parent is not None:
-            if parent["AnswerCount"] is not None and parent["ParsedAnswers"] is not None:
+            if parent["AnswerCount"] and parent["ParsedAnswers"]:
                 if int(parent["ParsedAnswers"]) == int(parent['AnswerCount']):
                     keys_to_del.append(a_attribs["ParentId"])
-                    if parent["Answers"] is not None and len(parent["Answers"]) > 0:
+                    ## Filter change: still use quesions with no accepted answers
+                    # if parent["Answers"] is not None and len(parent["Answers"]) > 0:
+                    if 1:
                         out_tags = tags_as_list(parent["Tags"])
                         out_name = "{}_{}_{}.txt".format(self.name, parent["Id"].zfill(10),"_".join(out_tags))
                         out_dict = dict(
@@ -137,6 +149,8 @@ class QA_Pairer():
                             question=BeautifulSoup(parent["Body"], "html.parser").get_text(),
                             answers=[],
                             answers_scores=[],
+                            non_answers=[],
+                            non_answers_scores=[]
                         )
                         # fmt: "Q:\n\n{question.title}\n\n{question.body}\n\nA:\n\n{answer.body\n\n for answer.sortby(score)}"                        
                         out_str = ""
@@ -159,6 +173,17 @@ class QA_Pairer():
                                 out_dict['answers'].append(ans_text)
                                 out_dict['answers_scores'].append(score)
                                 count += 1
+
+                        if parent["NonAnswers"] is not None:
+                            nona_key_score_dict = {}
+                            for ans_id, ans_attrib in parent["NonAnswers"].items():
+                                nona_key_score_dict[ans_id] = int(ans_attrib["Score"])
+                            nona_key_score_dict = OrderedDict((ans_id, score) for ans_id, score in sorted(nona_key_score_dict.items(), key=lambda item: item[1], reverse=True))
+                            for ans_id, score in nona_key_score_dict.items():
+                                ans_text = BeautifulSoup(parent["NonAnswers"][ans_id]["Body"], "html.parser").get_text()
+                                out_dict['non_answers'].append(ans_text)
+                                out_dict['non_answers_scores'].append(score)
+
                         if self.out_format == "txt":
                             with open("{}/{}".format(self.out_folder, out_name), 'w') as f:
                                 try:
@@ -190,7 +215,9 @@ class QA_Pairer():
                             self.sample = False
                         self.num_questions += 1
                         self.num_answers += len(out_dict['answers'])
-                        self.num_discarded_answers += len(key_score_dict)-len(out_dict['answers']) # cases where number of answers is > max responses
+                        if len(key_score_dict)-len(out_dict['answers'])>0:
+                            self.num_discarded_answers += len(key_score_dict)-len(out_dict['answers']) # cases where number of answers is > max responses
+                            print(f"Discarding {len(key_score_dict)-len(out_dict['answers'])} of {len(key_score_dict)} answers", self.num_discarded_answers)                        
                     else:
                         # discard questions with no accepted answers
                         self.num_discarded_questions += 1

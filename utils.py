@@ -64,6 +64,9 @@ def trim_attribs(elem_attribs, attrib_type="question"):
         [elem_attribs.pop(x, None) for x in to_delete]
         elem_attribs["ParsedAnswers"] = 0
         elem_attribs["Answers"] = {}
+        elem_attribs["NonAnswers"] = {}
+        if 'AnswerCount' not in elem_attribs.keys():
+            elem_attribs['AnswerCount']=-1
     elif attrib_type == "answer":
         to_keep = ['Id', 'Body', 'Score']
         new_dict = {}
