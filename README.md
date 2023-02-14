@@ -1,5 +1,6 @@
 # stackexchange_dataset
 A python tool for downloading & processing the [stackexchange data dumps](https://archive.org/details/stackexchange) into a text dataset for Language Models.
+The schema documentation of the dump can be found [here](https://meta.stackexchange.com/questions/2677/database-schema-documentation-for-the-public-data-dump-and-sede/2678#2678)
 
 Download the whole processed dataset [here](https://eaidata.bmk.sh/data/stackexchange_dataset.tar)
 
@@ -10,6 +11,7 @@ cd stackexchange_dataset
 pip install -r requirements.txt
 ```
 # Usage
+The default output format (for parsed data) is .zip. To create a lm_dataformat dataset pass option --out_format=lm_dataformat to the following commands. 
 
 To download *every* stackexchange dump & parse to text, simply run
 

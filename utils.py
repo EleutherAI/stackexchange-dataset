@@ -61,3 +61,10 @@ def trim_attribs(elem_attribs, attrib_type="question"):
         return new_dict
     else:
         raise Exception('Unrecognized attribute type - please specify either question or answer')
+
+def tags_as_list(tag_str):
+    tag_str = tag_str.strip(">").strip("<")
+    tag_str = tag_str.replace("-","_")
+    tag_list = tag_str.split("><")
+    tag_list.sort()
+    return tag_list
