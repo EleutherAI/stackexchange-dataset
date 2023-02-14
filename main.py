@@ -31,6 +31,7 @@ def download_and_process_single(name, out_format, min_score, max_responses, chk_
             s.extract()
 
         out_folder = "{}/out".format(curr_dir)
+        # out_folder = "{}/../../../suriyagwu/stackexchange/stackoverflow_python".format(curr_dir)
         os.makedirs(out_folder, exist_ok=True)
         os.makedirs("{}/samples".format(out_folder), exist_ok=True)
         if out_format == "lm_dataformat":
@@ -39,7 +40,7 @@ def download_and_process_single(name, out_format, min_score, max_responses, chk_
             archiver = zipfile.ZipFile('{}/{}.zip'.format(out_folder, name), 'a')
         else:
             archiver = None
-
+        name = name+"_"+"_".join(chk_tags) if len(chk_tags) else name 
         qa = QA_Pairer(path_to_xml, name=name, out_folder=out_folder, out_format=out_format, archiver=archiver, min_score=min_score, max_responses=max_responses, chk_tags=chk_tags)
         qa.main()
         if out_format == "lm_dataformat":
@@ -72,7 +73,7 @@ def main(args):
     # init pool with as many CPUs as available
     cpu_no = cpu_count() - 1
     p = Pool(cpu_no)
-    p.starmap(download_and_process_single, zip(names, repeat(args.out_format), repeat(args.min_score), repeat(args.max_responses)), repeat(tags))
+    p.starmap(download_and_process_single, zip(names, repeat(args.out_format), repeat(args.min_score), repeat(args.max_responses), repeat(tags)))
 
 
 if __name__ == "__main__":

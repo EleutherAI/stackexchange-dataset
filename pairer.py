@@ -46,10 +46,12 @@ class QA_Pairer():
 
         """
         os.makedirs(self.out_folder, exist_ok=True)
+        i=0
         for event, elem in tqdm(etree.iterparse(self.xml_path, events=('end',)), desc="Parsing {} XML file".format(self.name), disable=True):
             if elem.tag == "row":
                 try:
                     attribs = defaultdict(lambda: None, elem.attrib)
+                    i=i+1
                     # checks if PostTypeId=1
                     if is_question(attribs):
                         if has_answers(attribs) and match_tags_or(attribs, self.chk_tags):
@@ -98,7 +100,7 @@ class QA_Pairer():
         :param a_attribs: Answer's attribute dict
         """
         assert is_answer(a_attribs), "Must be an answer to add to parent"
-        if a_attribs is not None and self.questions[a_attribs["ParentId"]] is not None:
+        if a_attribs is not None and self.questions.get(a_attribs["ParentId"], None) is not None:
             if is_accepted_answer(a_attribs, self.questions[a_attribs["ParentId"]]):
                 self.questions[a_attribs["ParentId"]]["Answers"][a_attribs["Id"]] = trim_attribs(a_attribs, "answer")
                 self.questions[a_attribs["ParentId"]]["ParsedAnswers"] += 1
@@ -120,7 +122,7 @@ class QA_Pairer():
         removes from dict and prints to file.
         """
         keys_to_del = []
-        parent = self.questions[a_attribs["ParentId"]]
+        parent = self.questions.get(a_attribs["ParentId"], None)
         if a_attribs is not None and parent is not None:
             if parent["AnswerCount"] is not None and parent["ParsedAnswers"] is not None:
                 if int(parent["ParsedAnswers"]) == int(parent['AnswerCount']):
