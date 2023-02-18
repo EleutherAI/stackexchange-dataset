@@ -4,3 +4,4 @@ py7zr
 tqdm
 lm-dataformat
 jsonlines
+requests

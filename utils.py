@@ -44,6 +44,17 @@ def has_answers(elem_attribs):
             return True
     return False
 
+def match_tags_or(elem_attribs, chk_tags):
+    assert is_question(elem_attribs), "Must be a question to match tags"
+    if not(len(chk_tags)):
+        return True
+    if elem_attribs["Tags"] is not None:
+        elem_tags = tags_as_list(elem_attribs["Tags"])
+        for tag in chk_tags:
+            if tag in elem_tags:
+                return True
+    return False
+
 
 def trim_attribs(elem_attribs, attrib_type="question"):
     """deletes non-useful data from attribs dict for questions / answers, returns remaining"""
@@ -53,6 +64,9 @@ def trim_attribs(elem_attribs, attrib_type="question"):
         [elem_attribs.pop(x, None) for x in to_delete]
         elem_attribs["ParsedAnswers"] = 0
         elem_attribs["Answers"] = {}
+        elem_attribs["NonAnswers"] = {}
+        if 'AnswerCount' not in elem_attribs.keys():
+            elem_attribs['AnswerCount']=-1
     elif attrib_type == "answer":
         to_keep = ['Id', 'Body', 'Score']
         new_dict = {}
@@ -61,3 +75,10 @@ def trim_attribs(elem_attribs, attrib_type="question"):
         return new_dict
     else:
         raise Exception('Unrecognized attribute type - please specify either question or answer')
+
+def tags_as_list(tag_str):
+    tag_str = tag_str.strip(">").strip("<")
+    tag_str = tag_str.replace("-","_")
+    tag_list = tag_str.split("><")
+    tag_list.sort()
+    return tag_list
