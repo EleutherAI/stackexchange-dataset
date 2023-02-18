@@ -39,7 +39,7 @@ for filename in glob.glob(full_data_file):
         else:
             num_rejected += 1
 
-filtered_data_file_name = "stack_overflow"+filter_meta.file_suffix
+filtered_data_file_name = "stackoverflow"+filter_meta.file_suffix
 new_archive.commit(filtered_data_file_name)
 print("##### Stats #####")
 print(f"num_accepted: {num_accepted}, num_rejected: {num_rejected}")

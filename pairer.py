@@ -78,7 +78,10 @@ class QA_Pairer():
         print("##### Stats #####")
         print(f"num_questions={self.num_questions}, num_discarded_questions={self.num_discarded_questions}")
         print(f"num_answers={self.num_answers}, num_discarded_answers={self.num_discarded_answers}")
-        print(f"num_posts={self.num_posts}, num_nonQA_posts={self.num_nonQA_posts}, unprocessed_questions={len(self.questions.items())}")
+        print(f"num_posts={self.num_posts}, num_nonQA_posts={self.num_nonQA_posts}")
+        unprocessed_questions = len(self.questions.items())
+        unprocessed_answers = sum([len(q_att['Answers'].items()) for q, q_att in self.questions.items()])
+        print(f"unprocessed_questions={unprocessed_questions}, unprocessed_answers={unprocessed_answers}")
         print("###### End ######")
 
     def is_above_threshold(self, a_attribs):
@@ -109,13 +112,8 @@ class QA_Pairer():
                 self.questions[a_attribs["ParentId"]]["Answers"][a_attribs["Id"]] = trim_attribs(a_attribs, "answer")
                 self.questions[a_attribs["ParentId"]]["ParsedAnswers"] += 1
             elif self.is_above_threshold(a_attribs):
-                if a_attribs["Id"] is not None:
-                    parent = self.questions[a_attribs["ParentId"]]
-                    if parent is not None:
-                        self.questions[a_attribs["ParentId"]]["Answers"][a_attribs["Id"]] = trim_attribs(a_attribs, "answer")
-                        self.questions[a_attribs["ParentId"]]["ParsedAnswers"] += 1
-                else:
-                    self.questions[a_attribs["ParentId"]]["ParsedAnswers"] += 1
+                self.questions[a_attribs["ParentId"]]["Answers"][a_attribs["Id"]] = trim_attribs(a_attribs, "answer")
+                self.questions[a_attribs["ParentId"]]["ParsedAnswers"] += 1
             else:                
                 self.num_discarded_answers += 1 
                 # print("Discarded answer with score {}".format(a_attribs["Score"]), self.num_discarded_answers)

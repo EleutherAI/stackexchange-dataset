@@ -8,6 +8,7 @@ from itertools import repeat
 from lm_dataformat import Archive
 import zipfile
 import os
+import json
 
 curr_dir  = os.path.dirname(__file__)
 def download_and_process_single(name, out_format, min_score, max_responses):
@@ -31,9 +32,10 @@ def download_and_process_single(name, out_format, min_score, max_responses):
             s.extract()
 
         out_folder = "{}/out".format(curr_dir)
-        # out_folder = "{}/../../../suriyagwu/stackexchange/stackoverflow".format(curr_dir)
+        # out_folder = "{}/../../../suriyagwu/stackexchange/all".format(curr_dir)
         os.makedirs(out_folder, exist_ok=True)
         os.makedirs("{}/samples".format(out_folder), exist_ok=True)
+        os.makedirs("{}/misc".format(out_folder), exist_ok=True)
         if out_format == "lm_dataformat":
             archiver = Archive(out_folder)
         elif out_format == "zip":
@@ -46,6 +48,10 @@ def download_and_process_single(name, out_format, min_score, max_responses):
             archiver.commit(name)
         elif out_format == "zip":
             archiver.close()
+        
+        # save qa.questions dictionary data to a file
+        json.dump(qa.questions, open("{}/misc/{}_unprocessed_questions.json".format(out_folder, name), "w"), indent=4)
+
         # try:
         #     os.remove(path_to_7z)
         # except FileNotFoundError:
