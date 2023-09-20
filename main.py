@@ -1,12 +1,17 @@
-import argparse, traceback
+import argparse
+import os
+import traceback
+import zipfile
+from itertools import repeat
 from multiprocessing import Pool, cpu_count
-from utils import *
+
+import dotenv
+from lm_dataformat import Archive
+
 from downloader import Stack_Exchange_Downloader
 from pairer import QA_Pairer
-import os
-from itertools import repeat
-from lm_dataformat import Archive
-import zipfile
+
+dotenv.load_dotenv(override=True)
 
 
 def download_and_process_single(name, out_format, min_score, max_responses):
@@ -14,6 +19,10 @@ def download_and_process_single(name, out_format, min_score, max_responses):
         name = name.strip().lower()
         os.makedirs("dumps", exist_ok=True)
         s = Stack_Exchange_Downloader(name)
+        if name not in s.sites:
+            similar_entries = list(filter(lambda key: key.startswith(name) or key.endswith(name), s.sites.keys()))
+            print("StackExchange source not found. Perhaps you meant", similar_entries)
+            return
         path_to_xml = "dumps/{}/Posts.xml".format(name)
         if name != "stackoverflow":
             path_to_7z = "dumps/{}.7z".format(s.sites[name]["url"])
@@ -85,6 +94,7 @@ if __name__ == "__main__":
     parser.add_argument('--max_responses', help='maximum number of responses (sorted by score) to include for each question. '
                                                 'Default 3.', type=int, default=3)
     args = parser.parse_args()
+
     main(args)
 
 
