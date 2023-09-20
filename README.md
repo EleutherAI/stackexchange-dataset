@@ -11,17 +11,32 @@ pip install -r requirements.txt
 ```
 # Usage
 
-To download *every* stackexchange dump & parse to text, simply run
+
+## List all available StackExchagne dumps
+
+```
+python3 main.py --list 
+```
+
+
+
+## Download every StackExchange dumps 
+
+To download *every* stackexchange dumps & parse to text, simply run
 
 ```
 python3 main.py --names all
 ```
+
+## Download a single StackExchange dump 
 
 To download only a single stackexchange, you can add the name as an optional argument. E.G: 
 
 ```
 python3 main.py --names security.stackexchange
 ```
+
+## Download a list of StackExchange dumps
 
 To download a list of multiple stackexchanges, you can add the names separated by commas. E.G:
 

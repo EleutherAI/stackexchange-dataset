@@ -60,6 +60,12 @@ def download_and_process_single(name, out_format, min_score, max_responses):
 
 
 def main(args):
+    if args.list:
+        s = Stack_Exchange_Downloader("all")
+        print("List of all the sources of StackExchange: ")
+        print("- "+"\n- ".join(sorted(s.sites.keys())))
+        return
+
     names = args.names.split(',')
     if names[0].strip().lower() == "all":
         s = Stack_Exchange_Downloader("all")
@@ -81,6 +87,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description='CLI for stackexchange_dataset - A tool for downloading & processing stackexchange dumps in xml form to a raw '
                     'question-answer pair text dataset for Language Models')
+
+    parser.add_argument('--list', help='list of all the sources from stackechange',
+                        required=False, action="store_true")
+
     parser.add_argument('--names', help='names of stackexchanges to download, extract & parse, separated by commas. '
                                         'If "all", will download, extract & parse *every* stackoverflow site',
                         default="3dprinting.stackexchange,3dprinting.meta.stackexchange",
