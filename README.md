@@ -11,17 +11,32 @@ pip install -r requirements.txt
 ```
 # Usage
 
-To download *every* stackexchange dump & parse to text, simply run
+
+## List all available StackExchagne dumps
+
+```
+python3 main.py --list 
+```
+
+
+
+## Download every StackExchange dumps 
+
+To download *every* stackexchange dumps & parse to text, simply run
 
 ```
 python3 main.py --names all
 ```
+
+## Download a single StackExchange dump 
 
 To download only a single stackexchange, you can add the name as an optional argument. E.G: 
 
 ```
 python3 main.py --names security.stackexchange
 ```
+
+## Download a list of StackExchange dumps
 
 To download a list of multiple stackexchanges, you can add the names separated by commas. E.G:
 
@@ -30,6 +45,17 @@ python3 main.py --names ru.stackoverflow,money.stackexchange
 ```
 
 The name should be the url of the stackoverflow site, minus `http(s)://` and `.com`. You can view all available stackoverflow dumps [here](https://archive.org/download/stackexchange).
+
+## List available sources in Stack Exchange
+
+this will list all the available sources: 
+
+```
+python3 main.py --list
+```
+
+They will be listed as list, which could be parsed with `grep` and other batch utilities.
+
 
 ## All Usage Options:
 
