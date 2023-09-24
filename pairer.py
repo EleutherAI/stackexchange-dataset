@@ -29,7 +29,7 @@ class QA_Pairer():
             self.ar = archiver
 
     def main(self):
-        """iterates through SE xmls and:
+        """iterates through SE XMLs and:
 
         - stores PostTypeId="1" with AcceptedAnswerIds / Answers.
         - when an AcceptedAnswerId or Answer > min_score is reached, it should:

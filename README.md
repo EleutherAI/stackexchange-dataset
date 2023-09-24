@@ -46,6 +46,17 @@ python3 main.py --names ru.stackoverflow,money.stackexchange
 
 The name should be the url of the stackoverflow site, minus `http(s)://` and `.com`. You can view all available stackoverflow dumps [here](https://archive.org/download/stackexchange).
 
+## List available sources in Stack Exchange
+
+this will list all the available sources: 
+
+```
+python3 main.py --list
+```
+
+They will be listed as list, which could be parsed with `grep` and other batch utilities.
+
+
 ## All Usage Options:
 
 ```
