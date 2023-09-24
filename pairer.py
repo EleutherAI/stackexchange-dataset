@@ -2,13 +2,15 @@ import traceback
 import xml.etree.ElementTree as etree
 from collections import defaultdict
 from bs4 import BeautifulSoup
+from lm_dataformat import SUPPORTED_FORMATS, LM_DATAFORMAT_FORMAT, JSON_FORMAT, TEXT_FORMAT
 from tqdm import tqdm
-from utils import *
 
+from utils import *
 
 class QA_Pairer():
 
-    def __init__(self, xml_path, name=None, out_folder="out", min_score=3, max_responses=3, out_format="txt", archiver=None):
+    def __init__(self, xml_path, name=None, out_folder="out", min_score=3, max_responses=3, out_format=TEXT_FORMAT,
+                 archiver=None):
         """Makes a text dataset from StackExchange dumps"""
         self.xml_path = xml_path
         if name is None:
@@ -22,13 +24,13 @@ class QA_Pairer():
         # min_score required to parse an answer
         self.min_score = min_score
         self.max_responses = max_responses
-        assert out_format in ["txt", "lm_dataformat", "zip"], "Out format not recognized"
+        assert out_format in SUPPORTED_FORMATS, "Out format not recognized"
         self.out_format = out_format
-        if out_format in ["lm_dataformat", "zip"]:
+        if out_format in SUPPORTED_FORMATS:
             assert archiver is not None
             self.ar = archiver
 
-    def main(self):
+    def process(self):
         """iterates through SE XMLs and:
 
         - stores PostTypeId="1" with AcceptedAnswerIds / Answers.
@@ -40,7 +42,8 @@ class QA_Pairer():
 
         """
         os.makedirs(self.out_folder, exist_ok=True)
-        for event, elem in tqdm(etree.iterparse(self.xml_path, events=('end',)), desc="Parsing {} XML file".format(self.name)):
+        for event, elem in tqdm(etree.iterparse(self.xml_path, events=('end',)),
+                                desc="Parsing {} XML file".format(self.name)):
             if elem.tag == "row":
                 try:
                     attribs = defaultdict(lambda: None, elem.attrib)
@@ -94,7 +97,8 @@ class QA_Pairer():
                 if a_attribs["Id"] is not None:
                     parent = self.questions[a_attribs["ParentId"]]
                     if parent is not None:
-                        self.questions[a_attribs["ParentId"]]["Answers"][a_attribs["Id"]] = trim_attribs(a_attribs, "answer")
+                        self.questions[a_attribs["ParentId"]]["Answers"][a_attribs["Id"]] = trim_attribs(a_attribs,
+                                                                                                         "answer")
                         self.questions[a_attribs["ParentId"]]["ParsedAnswers"] += 1
                 else:
                     self.questions[a_attribs["ParentId"]]["ParsedAnswers"] += 1
@@ -124,25 +128,26 @@ class QA_Pairer():
                             key_score_dict = {}
                             for k, a in parent["Answers"].items():
                                 key_score_dict[k] = int(a["Score"])
-                            key_score_dict = {k: v for k, v in sorted(key_score_dict.items(), key=lambda item: item[1], reverse=True)}
+                            key_score_dict = {k: v for k, v in
+                                              sorted(key_score_dict.items(), key=lambda item: item[1], reverse=True)}
                             count = 0
                             for k in key_score_dict:
                                 if count >= self.max_responses:
                                     break
-                                out_str += 'A:\n\n{}\n\n'.format(BeautifulSoup(parent["Answers"][k]["Body"], "html.parser").get_text())
+                                out_str += 'A:\n\n{}\n\n'.format(
+                                    BeautifulSoup(parent["Answers"][k]["Body"], "html.parser").get_text())
                                 count += 1
-                        if self.out_format == "txt":
-                            with open("{}/{}".format(self.out_folder, out_name), 'w') as f:
-                                try:
-                                    f.write(filter_newlines(out_str))
-                                except:
-                                    f.write(filter_newlines(handle_unicode_errors(out_str)))
-                        elif self.out_format == "zip":
+                        if self.out_format == TEXT_FORMAT:
                             try:
-                                self.ar.writestr(out_name, filter_newlines(out_str))
+                                self.ar.add_data(filter_newlines(out_str))
                             except:
-                                self.ar.writestr(out_name, filter_newlines(handle_unicode_errors(out_str)))
-                        elif self.out_format == "lm_dataformat":
+                                self.ar.add_data(filter_newlines(handle_unicode_errors(out_str)))
+                        if self.out_format == JSON_FORMAT:
+                            try:
+                                self.ar.add_data(filter_newlines(out_str))
+                            except:
+                                self.ar.add_data(filter_newlines(handle_unicode_errors(out_str)))
+                        elif self.out_format == LM_DATAFORMAT_FORMAT:
                             try:
                                 self.ar.add_data(filter_newlines(out_str), meta={
                                     'name': out_name})
