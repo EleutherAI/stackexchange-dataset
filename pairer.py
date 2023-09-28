@@ -1,11 +1,13 @@
 import traceback
 import xml.etree.ElementTree as etree
 from collections import defaultdict
+
 from bs4 import BeautifulSoup
 from lm_dataformat import SUPPORTED_FORMATS, LM_DATAFORMAT_FORMAT, JSON_FORMAT, TEXT_FORMAT
 from tqdm import tqdm
 
 from utils import *
+
 
 class QA_Pairer():
 
@@ -111,6 +113,13 @@ class QA_Pairer():
         removes from dict and prints to file.
         """
         keys_to_del = []
+        qa_structure = {
+            "question": {
+                "title": "",
+                "body": ""
+            },
+            "answers": []
+        }
         parent = self.questions[a_attribs["ParentId"]]
         if a_attribs is not None and parent is not None:
             if parent["AnswerCount"] is not None and parent["ParsedAnswers"] is not None:
@@ -118,41 +127,28 @@ class QA_Pairer():
                     keys_to_del.append(a_attribs["ParentId"])
                     if parent["Answers"] is not None and len(parent["Answers"]) > 0:
                         out_name = "{}_{}.txt".format(self.name, parent["Id"].zfill(10))
-                        out_str = ""
-                        out_str += 'Q:\n\n'
+                        question_structure = qa_structure['question']
                         if parent["Title"] is not None:
-                            out_str += '{}\n\n'.format(BeautifulSoup(parent["Title"], "html.parser").get_text())
+                            question_structure['title'] = BeautifulSoup(parent["Title"], "html.parser").get_text()
                         if parent["Body"] is not None:
-                            out_str += '{}\n\n'.format(BeautifulSoup(parent["Body"], "html.parser").get_text())
+                            question_structure['body'] = BeautifulSoup(parent["Body"], "html.parser").get_text()
                         if parent["Answers"] is not None:
                             key_score_dict = {}
+                            answers_structure_tmp = []
                             for k, a in parent["Answers"].items():
-                                key_score_dict[k] = int(a["Score"])
-                            key_score_dict = {k: v for k, v in
-                                              sorted(key_score_dict.items(), key=lambda item: item[1], reverse=True)}
-                            count = 0
-                            for k in key_score_dict:
-                                if count >= self.max_responses:
-                                    break
-                                out_str += 'A:\n\n{}\n\n'.format(
-                                    BeautifulSoup(parent["Answers"][k]["Body"], "html.parser").get_text())
-                                count += 1
-                        if self.out_format == TEXT_FORMAT:
-                            try:
-                                self.ar.add_data(filter_newlines(out_str))
-                            except:
-                                self.ar.add_data(filter_newlines(handle_unicode_errors(out_str)))
-                        if self.out_format == JSON_FORMAT:
-                            try:
-                                self.ar.add_data(filter_newlines(out_str))
-                            except:
-                                self.ar.add_data(filter_newlines(handle_unicode_errors(out_str)))
+                                # key_score_dict[k] = int(a["Score"])
+                                answers_structure_tmp.append({
+                                    "id": a['Id'],
+                                    "body": BeautifulSoup(a["Body"], "html.parser").get_text(),
+                                    "score": int(a["Score"])
+                                })
+                            qa_structure['answers'] = sorted(answers_structure_tmp, key=lambda item: item['score'],
+                                                             reverse=True)[0:self.max_responses]
+
+                        if self.out_format == TEXT_FORMAT or self.out_format == JSON_FORMAT:
+                            self.ar.add_data(qa_structure)
                         elif self.out_format == LM_DATAFORMAT_FORMAT:
-                            try:
-                                self.ar.add_data(filter_newlines(out_str), meta={
-                                    'name': out_name})
-                            except:
-                                self.ar.add_data(filter_newlines(handle_unicode_errors(out_str)), meta={
-                                    'name': out_name})
+                            self.ar.add_data(qa_structure, meta={'name': out_name})
+
         for key in keys_to_del:
             self.questions.pop(key, None)
