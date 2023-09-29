@@ -1,12 +1,12 @@
 import argparse
 import os
-import sys
 import traceback
 from itertools import repeat
 from multiprocessing import Pool, cpu_count
 
 import dotenv
-from lm_dataformat import Archive, JSONArchive, TextArchive, LM_DATAFORMAT_FORMAT, TEXT_FORMAT, SUPPORTED_FORMATS
+from lm_dataformat import Archive, JSONArchive, TextArchive, LM_DATAFORMAT_FORMAT, TEXT_FORMAT, SUPPORTED_FORMATS, \
+    JSON_FORMAT
 
 from downloader import Stack_Exchange_Downloader
 from pairer import QA_Pairer
@@ -44,7 +44,7 @@ def download_and_process_single(name, out_format, min_score, max_responses, keep
             archiver = Archive(out_folder)
         elif out_format == TEXT_FORMAT:
             archiver = TextArchive(out_folder)
-        elif out_format == "json":
+        elif out_format == JSON_FORMAT:
             archiver = JSONArchive(out_folder)
         else:
             archiver = None
