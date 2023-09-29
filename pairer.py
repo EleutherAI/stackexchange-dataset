@@ -3,7 +3,7 @@ import xml.etree.ElementTree as etree
 from collections import defaultdict
 
 from bs4 import BeautifulSoup
-from lm_dataformat import SUPPORTED_FORMATS, LM_DATAFORMAT_FORMAT, JSON_FORMAT, TEXT_FORMAT
+from lm_dataformat import SUPPORTED_FORMATS, LM_DATAFORMAT_FORMAT, JSON_FORMAT, TEXT_FORMAT, TextArchive
 from tqdm import tqdm
 
 from utils import *
@@ -145,10 +145,12 @@ class QA_Pairer():
                             qa_structure['answers'] = sorted(answers_structure_tmp, key=lambda item: item['score'],
                                                              reverse=True)[0:self.max_responses]
 
-                        if self.out_format == TEXT_FORMAT or self.out_format == JSON_FORMAT:
+                        if self.out_format == TEXT_FORMAT:
+                            self.ar.add_data(TextArchive.to_text(qa_structure))
+                        elif self.out_format == JSON_FORMAT:
                             self.ar.add_data(qa_structure)
                         elif self.out_format == LM_DATAFORMAT_FORMAT:
-                            self.ar.add_data(qa_structure, meta={'name': out_name})
+                            self.ar.add_data(TextArchive.to_text(qa_structure), meta={'name': out_name})
 
         for key in keys_to_del:
             self.questions.pop(key, None)
