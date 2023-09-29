@@ -51,10 +51,7 @@ def download_and_process_single(name, out_format, min_score, max_responses):
 
         qa = QA_Pairer(path_to_xml, name=name, out_format=out_format, archiver=archiver, min_score=min_score, max_responses=max_responses)
         qa.process()
-        if out_format == LM_DATAFORMAT_FORMAT:
-            archiver.commit(name)
-        else:
-            archiver.commit(name)
+        archiver.commit(name)
 
         try:
             os.remove(path_to_7z)

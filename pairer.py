@@ -129,7 +129,7 @@ class QA_Pairer():
                         out_name = "{}_{}.txt".format(self.name, parent["Id"].zfill(10))
                         question_structure = qa_structure['question']
                         if parent["Title"] is not None:
-                            question_structure['title'] = BeautifulSoup(parent["Title"], "html.parser").get_text()
+                            question_structure['title'] = parent["Title"]
                         if parent["Body"] is not None:
                             question_structure['body'] = BeautifulSoup(parent["Body"], "html.parser").get_text()
                         if parent["Answers"] is not None:
