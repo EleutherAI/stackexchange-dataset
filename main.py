@@ -14,7 +14,7 @@ from pairer import QA_Pairer
 dotenv.load_dotenv(override=True)
 
 
-def download_and_process_single(name, out_format, min_score, max_responses):
+def download_and_process_single(name, out_format, min_score, max_responses, keep_sources=False):
     try:
         name = name.strip().lower()
         os.makedirs("dumps", exist_ok=True)
@@ -49,14 +49,17 @@ def download_and_process_single(name, out_format, min_score, max_responses):
         else:
             archiver = None
 
-        qa = QA_Pairer(path_to_xml, name=name, out_format=out_format, archiver=archiver, min_score=min_score, max_responses=max_responses)
+        qa = QA_Pairer(path_to_xml, name=name, out_format=out_format, archiver=archiver, min_score=min_score,
+                       max_responses=max_responses)
         qa.process()
         archiver.commit(name)
 
-        try:
-            os.remove(path_to_7z)
-        except FileNotFoundError:
-            print('ERROR: FileNotFoundError: File {} not found'.format(s.sites[name]["url"]))
+        if not keep_sources:
+            try:
+                os.remove(path_to_7z)
+            except FileNotFoundError:
+                print('ERROR: FileNotFoundError: File {} not found'.format(s.sites[name]["url"]))
+
         directory_uncompressed = "dumps/{}".format(name)
         filelist = [f for f in os.listdir(directory_uncompressed)
                     if f.endswith(".xml")]
@@ -92,7 +95,8 @@ def main(args):
     cpu_no = cpu_count() - 1
     p = Pool(cpu_no)
     p.starmap(download_and_process_single,
-              zip(names, repeat(args.out_format), repeat(args.min_score), repeat(args.max_responses)))
+              zip(names, repeat(args.out_format), repeat(args.min_score), repeat(args.max_responses),
+                  repeat(args.keep_sources)))
 
 
 if __name__ == "__main__":
@@ -107,8 +111,9 @@ if __name__ == "__main__":
                                         'If "all", will download, extract & parse *every* stackoverflow site',
                         default="3dprinting.stackexchange,3dprinting.meta.stackexchange",
                         type=str)
-    parser.add_argument('--out_format', help='format of out file - if you are processing everything this will need to be '
-                                             'lm_dataformat, as you will run into number of files per directory limits.',
+    parser.add_argument('--out_format',
+                        help='format of out file - if you are processing everything this will need to be '
+                             'lm_dataformat, as you will run into number of files per directory limits.',
                         default=TEXT_FORMAT,
                         choices=SUPPORTED_FORMATS,
                         type=str)
@@ -123,6 +128,9 @@ if __name__ == "__main__":
     parser.add_argument('--max_responses',
                         help='maximum number of responses (sorted by score) to include for each question. '
                              'Default 3.', type=int, default=3)
+    parser.add_argument('--keep-sources',
+                        help='Do not clean-up the downloaded source 7z files.',
+                        action="store_true", default=False)
     args = parser.parse_args()
 
     main(args)
