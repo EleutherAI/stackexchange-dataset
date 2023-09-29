@@ -30,7 +30,7 @@ def download_and_process_single(name, out_format, min_score, max_responses):
         else:
             path_to_7z = "dumps/stackoverflow.com-Posts.7z"
 
-        out_folder = "out".format(name)
+        out_folder = "out/{}".format(name)
         os.makedirs(out_folder, exist_ok=True)
         if not os.path.isfile(path_to_7z):
             # download 7z if it's not downloaded already
@@ -43,7 +43,7 @@ def download_and_process_single(name, out_format, min_score, max_responses):
         if out_format == LM_DATAFORMAT_FORMAT:
             archiver = Archive(out_folder)
         elif out_format == TEXT_FORMAT:
-            archiver = TextArchive(out_format)
+            archiver = TextArchive(out_folder)
         elif out_format == "json":
             archiver = JSONArchive(out_folder)
         else:
@@ -55,13 +55,17 @@ def download_and_process_single(name, out_format, min_score, max_responses):
             archiver.commit(name)
         else:
             archiver.commit(name)
-        # try:
-        #     os.remove(path_to_7z)
-        # except FileNotFoundError:
-        #     print('ERROR: FileNotFoundError: File {} not found'.format(s.sites[name]["url"]))
-        # filelist = [f for f in os.listdir("dumps/{}".format(name)) if f.endswith(".xml")]
-        # for f in filelist:
-        #     os.remove(os.path.join("dumps/{}".format(name), f))
+
+        try:
+            os.remove(path_to_7z)
+        except FileNotFoundError:
+            print('ERROR: FileNotFoundError: File {} not found'.format(s.sites[name]["url"]))
+        directory_uncompressed = "dumps/{}".format(name)
+        filelist = [f for f in os.listdir(directory_uncompressed)
+                    if f.endswith(".xml")]
+        for f in filelist:
+            os.remove(os.path.join(directory_uncompressed, f))
+        os.removedirs(directory_uncompressed)
     except:
         traceback.print_exc()
 
@@ -82,9 +86,9 @@ def main(args):
         # bring stackoverflow to the front so it is always processed first, since it's the largest
         if "stackoverflow" in names:
             names.insert(0, names.pop(names.index("stackoverflow")))
-        if args.no_zip:
-            print("Downloading everything required the output to be compressed. Re-run *without* the option --no-zip.")
-            sys.exit(-1)
+        # if args.no_zip:
+        #     print("Downloading everything required the output to be compressed. Re-run *without* the option --no-zip.")
+        #     sys.exit(-1)
     print('Downloading and processing stackexchange dumps for {}'.format(names))
     # Download & Process
     # init pool with as many CPUs as available
@@ -111,11 +115,11 @@ if __name__ == "__main__":
                         default=TEXT_FORMAT,
                         choices=SUPPORTED_FORMATS,
                         type=str)
-    parser.add_argument('--no-zip',
-                        help="Disable the compression of the output files. Writing plain files might end up in problems with the filesystem",
-                        action="store_false",
-                        required=False,
-                        default=True)
+    # parser.add_argument('--no-zip',
+    #                     help="Disable the compression of the output files. Writing plain files might end up in problems with the filesystem",
+    #                     action="store_true",
+    #                     required=False,
+    #                     default=False)
     parser.add_argument('--min_score',
                         help='minimum score of a response in order to be included in the dataset. Default 3.',
                         type=int, default=3)
