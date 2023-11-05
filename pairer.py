@@ -1,14 +1,18 @@
 import traceback
 import xml.etree.ElementTree as etree
 from collections import defaultdict
+
 from bs4 import BeautifulSoup
+from lm_dataformat import SUPPORTED_FORMATS, LM_DATAFORMAT_FORMAT, JSON_FORMAT, TEXT_FORMAT, TextArchive
 from tqdm import tqdm
+
 from utils import *
 
 
 class QA_Pairer():
 
-    def __init__(self, xml_path, name=None, out_folder="out", min_score=3, max_responses=3, out_format="txt", archiver=None):
+    def __init__(self, xml_path, name=None, out_folder="out", min_score=3, max_responses=3, out_format=TEXT_FORMAT,
+                 archiver=None):
         """Makes a text dataset from StackExchange dumps"""
         self.xml_path = xml_path
         if name is None:
@@ -22,14 +26,14 @@ class QA_Pairer():
         # min_score required to parse an answer
         self.min_score = min_score
         self.max_responses = max_responses
-        assert out_format in ["txt", "lm_dataformat", "zip"], "Out format not recognized"
+        assert out_format in SUPPORTED_FORMATS, "Out format not recognized"
         self.out_format = out_format
-        if out_format in ["lm_dataformat", "zip"]:
+        if out_format in SUPPORTED_FORMATS:
             assert archiver is not None
             self.ar = archiver
 
-    def main(self):
-        """iterates through SE xmls and:
+    def process(self):
+        """iterates through SE XMLs and:
 
         - stores PostTypeId="1" with AcceptedAnswerIds / Answers.
         - when an AcceptedAnswerId or Answer > min_score is reached, it should:
@@ -40,7 +44,8 @@ class QA_Pairer():
 
         """
         os.makedirs(self.out_folder, exist_ok=True)
-        for event, elem in tqdm(etree.iterparse(self.xml_path, events=('end',)), desc="Parsing {} XML file".format(self.name)):
+        for event, elem in tqdm(etree.iterparse(self.xml_path, events=('end',)),
+                                desc="Parsing {} XML file".format(self.name)):
             if elem.tag == "row":
                 try:
                     attribs = defaultdict(lambda: None, elem.attrib)
@@ -94,7 +99,8 @@ class QA_Pairer():
                 if a_attribs["Id"] is not None:
                     parent = self.questions[a_attribs["ParentId"]]
                     if parent is not None:
-                        self.questions[a_attribs["ParentId"]]["Answers"][a_attribs["Id"]] = trim_attribs(a_attribs, "answer")
+                        self.questions[a_attribs["ParentId"]]["Answers"][a_attribs["Id"]] = trim_attribs(a_attribs,
+                                                                                                         "answer")
                         self.questions[a_attribs["ParentId"]]["ParsedAnswers"] += 1
                 else:
                     self.questions[a_attribs["ParentId"]]["ParsedAnswers"] += 1
@@ -107,6 +113,13 @@ class QA_Pairer():
         removes from dict and prints to file.
         """
         keys_to_del = []
+        qa_structure = {
+            "question": {
+                "title": "",
+                "body": ""
+            },
+            "answers": []
+        }
         parent = self.questions[a_attribs["ParentId"]]
         if a_attribs is not None and parent is not None:
             if parent["AnswerCount"] is not None and parent["ParsedAnswers"] is not None:
@@ -114,40 +127,30 @@ class QA_Pairer():
                     keys_to_del.append(a_attribs["ParentId"])
                     if parent["Answers"] is not None and len(parent["Answers"]) > 0:
                         out_name = "{}_{}.txt".format(self.name, parent["Id"].zfill(10))
-                        out_str = ""
-                        out_str += 'Q:\n\n'
+                        question_structure = qa_structure['question']
                         if parent["Title"] is not None:
-                            out_str += '{}\n\n'.format(BeautifulSoup(parent["Title"], "html.parser").get_text())
+                            question_structure['title'] = parent["Title"]
                         if parent["Body"] is not None:
-                            out_str += '{}\n\n'.format(BeautifulSoup(parent["Body"], "html.parser").get_text())
+                            question_structure['body'] = BeautifulSoup(parent["Body"], "html.parser").get_text()
                         if parent["Answers"] is not None:
                             key_score_dict = {}
+                            answers_structure_tmp = []
                             for k, a in parent["Answers"].items():
-                                key_score_dict[k] = int(a["Score"])
-                            key_score_dict = {k: v for k, v in sorted(key_score_dict.items(), key=lambda item: item[1], reverse=True)}
-                            count = 0
-                            for k in key_score_dict:
-                                if count >= self.max_responses:
-                                    break
-                                out_str += 'A:\n\n{}\n\n'.format(BeautifulSoup(parent["Answers"][k]["Body"], "html.parser").get_text())
-                                count += 1
-                        if self.out_format == "txt":
-                            with open("{}/{}".format(self.out_folder, out_name), 'w') as f:
-                                try:
-                                    f.write(filter_newlines(out_str))
-                                except:
-                                    f.write(filter_newlines(handle_unicode_errors(out_str)))
-                        elif self.out_format == "zip":
-                            try:
-                                self.ar.writestr(out_name, filter_newlines(out_str))
-                            except:
-                                self.ar.writestr(out_name, filter_newlines(handle_unicode_errors(out_str)))
-                        elif self.out_format == "lm_dataformat":
-                            try:
-                                self.ar.add_data(filter_newlines(out_str), meta={
-                                    'name': out_name})
-                            except:
-                                self.ar.add_data(filter_newlines(handle_unicode_errors(out_str)), meta={
-                                    'name': out_name})
+                                # key_score_dict[k] = int(a["Score"])
+                                answers_structure_tmp.append({
+                                    "id": a['Id'],
+                                    "body": BeautifulSoup(a["Body"], "html.parser").get_text(),
+                                    "score": int(a["Score"])
+                                })
+                            qa_structure['answers'] = sorted(answers_structure_tmp, key=lambda item: item['score'],
+                                                             reverse=True)[0:self.max_responses]
+
+                        if self.out_format == TEXT_FORMAT:
+                            self.ar.add_data(TextArchive.to_text(qa_structure))
+                        elif self.out_format == JSON_FORMAT:
+                            self.ar.add_data(qa_structure)
+                        elif self.out_format == LM_DATAFORMAT_FORMAT:
+                            self.ar.add_data(TextArchive.to_text(qa_structure), meta={'name': out_name})
+
         for key in keys_to_del:
             self.questions.pop(key, None)
