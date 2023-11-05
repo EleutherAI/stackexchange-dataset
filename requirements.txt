@@ -2,5 +2,6 @@ bs4
 lxml
 py7zr
 tqdm
-lm-dataformat
+# lm-dataformat
+-e https://github.com/lfoppiano/lm_dataformat
 jsonlines
