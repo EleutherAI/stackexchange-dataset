@@ -1,7 +1,7 @@
 # stackexchange_dataset
 A python tool for downloading & processing the [stackexchange data dumps](https://archive.org/details/stackexchange) into a text dataset for Language Models.
 
-**NOTE**: The original repository seems not maintained anymore. 
+**NOTE**: The original repository seems not maintained anymore. This includes additional fixes. See [Todo](#todo)
 
 [//]: # (Download the whole processed dataset [here]&#40;https://eaidata.bmk.sh/data/stackexchange_dataset.tar&#41;)
 
@@ -19,8 +19,6 @@ pip install -r requirements.txt
 ```
 python3 main.py --list 
 ```
-
-
 
 ### Download every StackExchange dumps 
 
@@ -68,11 +66,18 @@ CLI for stackexchange_dataset - A tool for downloading & processing
 stackexchange dumps in xml form to a raw question-answer pair text dataset for
 Language Models
 
-optional arguments:
-  -h, --help     show this help message and exit
-  --names NAMES  names of stackexchanges to download, extract & parse,
-                 separated by commas. If "all", will download, extract & parse
-                 *every* stackoverflow site
+options:
+  -h, --help            show this help message and exit
+  --list                list of all the sources from stackechange
+  --names NAMES         names of stackexchanges to download, extract & parse, separated by commas. If "all", will download, extract & parse *every* stackoverflow site
+  --out_format {txt,lm_dataformat,json}
+                        format of out file - if you are processing everything this will need to be lm_dataformat, as you will run into number of files per directory limits.
+  --min_score MIN_SCORE
+                        minimum score of a response in order to be included in the dataset. Default 3.
+  --max_responses MAX_RESPONSES
+                        maximum number of responses (sorted by score) to include for each question. Default 3.
+  --keep-sources        Do not clean-up the downloaded source 7z files.
+
 ```
 
 ### Proxy support 
@@ -88,11 +93,59 @@ NO_PROXY=address to ignore,localhost
 no_proxy=address to ignore,localhost
 ```
 
-# TODO:
+## Formats 
+
+This fork supports the following formats: txt,lm_dataformat,json
+
+### Text (txt)
+
+The output is stored in a ZIP file. 
+
+```
+Q:
+
+Pantsing a story?
+
+I heard a writer talking about pantsing a story. What does that mean?
+
+A:
+
+"Pantsing" refers to simply writing a story without much, if any, preparation or pre-writing -- just writing down whatever comes to you, and letting the story go (and wander) wherever it feels like at the moment you're writing it down.
+As for etymology, I'm not sure where it comes from. In general, "pantsing" refers to a prank in which you pull someone's pants down, but I'm not sure how that plays into the idea of writing (aside from the fact that both can be surprising).
+```
+
+### JSON (json)
+
+The output is stored in a ZST zipped file with the following JSON in it: 
+
+```json
+[
+  {
+    "question": {
+      "title": "How should we behave for the \"reference\" questions?",
+      "body": "Suppose user X comes in and ask \"How is the group with professor Y at university Z ?\". How should we treat this kind of questions ? One thing may be to answer with pure citation metrics, that is: they publish a lot, or they don't seem to. More personal experiences and opinions about Professor Y may trigger complaint from the professor him\/herself.\n"
+    },
+    "answers": [
+      {
+        "id": "3",
+        "body": "I think questions about specific people or specific departments are not good questions for this site.  It would be much better for the asker to directly contact students of the department\/person in question.\n",
+        "score": 12
+      }
+    ]
+  }
+```
+
+### LM_DataFormat
+
+The output is stored in a ZST zipped file with the Text file embedded into it. 
+
+
+
+# TODO: 
 
 - [ ] should we add metadata to the text (i.e name of stackexchange & tags)?
-- [ ] add flags to change min_score / max_responses args.
-- [ ] add flags to turn off downloading / extraction
-- [ ] add flags to select number of workers for multiprocessing
-- [ ] output as [lm dataformat](https://github.com/leogao2/lm_dataformat)
-
+- [x] add flags to change min_score / max_responses args.
+- [x] ~~add flags to turn off downloading / extraction~~ add flag to keep sources after download 
+- [x] add flags to select number of workers for multiprocessing
+- [x] output as [lm dataformat](https://github.com/leogao2/lm_dataformat)
+- [x] output as structured JSON output
