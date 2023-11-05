@@ -1,4 +1,7 @@
 # stackexchange_dataset
+
+[![Build unstable](https://github.com/lfoppiano/stackexchange-dataset/actions/workflows/ci-build.yml/badge.svg)](https://github.com/lfoppiano/stackexchange-dataset/actions/workflows/ci-build.yml)
+
 A python tool for downloading & processing the [stackexchange data dumps](https://archive.org/details/stackexchange) into a text dataset for Language Models.
 
 **NOTE**: The original repository seems not maintained anymore. This includes additional fixes. See [Todo](#todo)
