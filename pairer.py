@@ -146,7 +146,7 @@ class QA_Pairer():
                                                              reverse=True)[0:self.max_responses]
 
                         if self.out_format == TEXT_FORMAT:
-                            self.ar.add_data(TextArchive.to_text(qa_structure))
+                            self.ar.add_data(qa_structure)
                         elif self.out_format == JSON_FORMAT:
                             self.ar.add_data(qa_structure)
                         elif self.out_format == LM_DATAFORMAT_FORMAT:
