@@ -3,5 +3,5 @@ lxml
 py7zr
 tqdm
 # lm-dataformat
--e https://github.com/lfoppiano/lm_dataformat
+-e git+https://github.com/lfoppiano/lm_dataformat
 jsonlines
