@@ -122,7 +122,6 @@ As for etymology, I'm not sure where it comes from. In general, "pantsing" refer
 The output is stored in a ZST zipped file with the following JSON in it: 
 
 ```json
-[
   {
     "question": {
       "title": "How should we behave for the \"reference\" questions?",
