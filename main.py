@@ -35,6 +35,11 @@ def download_and_process_single(name, out_format, min_score, max_responses, keep
         if not os.path.isfile(path_to_7z):
             # download 7z if it's not downloaded already
             s.download()
+        else:
+            valid = s.validate()
+            if valid is False:
+                s.remove_dump()
+                s.download()
 
         if not os.path.isfile(path_to_xml):
             # extract 7z if it's not extracted already

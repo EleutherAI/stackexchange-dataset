@@ -38,6 +38,14 @@ class Stack_Exchange_Downloader():
             if os.system(command):
                 print('Download for {} failed!'.format(self.name))
 
+    def validate(self):
+        command = "py7zr t dumps/{}".format(self.sites[self.name]["download"].replace("https://archive.org/download/stackexchange/", ""))
+        if os.system(command):
+            print('Invalid file {}'.format(self.sites[self.name]["download"].replace("https://archive.org/download/stackexchange/", "")))
+            return False
+
+        return True
+
     def extract(self):
         if self.name == "all":
             for k in self.sites:
@@ -61,3 +69,6 @@ class Stack_Exchange_Downloader():
             print(command)
             if os.system(command):
                 print('Extraction for {} failed!'.format(self.name))
+
+    def remove_dump(self):
+        os.remove("dumps/{}".format(self.sites[self.name]["download"].replace("https://archive.org/download/stackexchange/", "")))
