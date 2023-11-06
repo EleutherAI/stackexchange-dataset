@@ -28,12 +28,12 @@ class Stack_Exchange_Downloader():
     def download(self):
         if self.name == "all":
             for k in self.sites:
-                command = "wget {} -P dumps".format(self.sites[k]["download"])
+                command = "wget {} -c -P dumps".format(self.sites[k]["download"])
                 print(command)
                 if os.system(command):
                     print('Download for {} failed!'.format(k))
         else:
-            command = "wget {} -P dumps".format(self.sites[self.name]["download"])
+            command = "wget {} -c -P dumps".format(self.sites[self.name]["download"])
             print(command)
             if os.system(command):
                 print('Download for {} failed!'.format(self.name))

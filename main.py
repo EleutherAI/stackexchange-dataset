@@ -38,8 +38,8 @@ def download_and_process_single(name, out_format, min_score, max_responses, keep
         else:
             valid = s.validate()
             if valid is False:
-                s.remove_dump()
                 s.download()
+                # s.remove_dump()
 
         if not os.path.isfile(path_to_xml):
             # extract 7z if it's not extracted already
