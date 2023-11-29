@@ -150,7 +150,7 @@ if __name__ == "__main__":
                              'This process ran on the full stackexchange collection may need several Gb of temporary files.',
                         required=False,
                         default=None)
-    parser.add_argument('--max-thread-num',
+    parser.add_argument('--max-num-threads',
                         help="Set the maximum thread number. If not specified will use the number of CPU - 1. "
                              "If --use-disk is not specified, using a large amount of thread might end up in a out of "
                              "memory and being killed by the OS.",
