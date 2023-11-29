@@ -35,11 +35,11 @@ def download_and_process_single(name, out_format, min_score, max_responses, keep
         if not os.path.isfile(path_to_7z):
             # download 7z if it's not downloaded already
             s.download()
-        else:
-            valid = s.validate()
-            if valid is False:
-                s.download()
-                # s.remove_dump()
+
+        valid = s.validate()
+        if valid is False:
+            s.download()
+            # s.remove_dump()
 
         if out_format == LM_DATAFORMAT_FORMAT:
             archiver = Archive(out_folder)
@@ -88,7 +88,7 @@ def main(args):
         names = []
         for k in s.sites:
             names.append(k)
-        # bring stackoverflow to the front so it is always processed first, since it's the largest
+        # bring stackoverflow to the front, so it is always processed first, since it's the largest
         if "stackoverflow" in names:
             names.insert(0, names.pop(names.index("stackoverflow")))
         # if args.no_zip:
