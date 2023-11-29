@@ -95,7 +95,11 @@ def main(args):
     print('Downloading and processing stackexchange dumps for {}'.format(names))
     # Download & Process
     # init pool with as many CPUs as available
-    cpu_no = cpu_count() - 1
+    if args.max_num_threads < 1:
+        cpu_no = cpu_count() - 1
+    else:
+        cpu_no = args.max_num_threads
+
     p = Pool(cpu_no)
     p.starmap(download_and_process_single,
               zip(names, repeat(args.out_format), repeat(args.min_score), repeat(args.max_responses),
@@ -133,7 +137,26 @@ if __name__ == "__main__":
                              'Default 3.', type=int, default=3)
     parser.add_argument('--keep-sources',
                         help='Do not clean-up the downloaded source 7z files.',
-                        action="store_true", default=False)
+                        action="store_true",
+                        default=False)
+    parser.add_argument("--use-disk",
+                        help="Use a disk-backed collection for sources larger than 1Gb. "
+                             "NOTE that might need several Gb of temporary files "
+                             "(consider set your own temp directory using --temp-directory)",
+                        default=False,
+                        action="store_true")
+    parser.add_argument('--temp-directory',
+                        help='Set a custom temporary directory root, instead of the OS designated. '
+                             'This process ran on the full stackexchange collection may need several Gb of temporary files.',
+                        required=False,
+                        default=None)
+    parser.add_argument('--max-thread-num',
+                        help="Set the maximum thread number. If not specified will use the number of CPU - 1. "
+                             "If --use-disk is not specified, using a large amount of thread might end up in a out of "
+                             "memory and being killed by the OS.",
+                        required=False,
+                        default=-1,
+                        type=int)
     args = parser.parse_args()
 
     main(args)

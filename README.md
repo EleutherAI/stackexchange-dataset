@@ -145,6 +145,6 @@ The output is stored in a ZST zipped file with the following JSON in it:
 - [ ] should we add metadata to the text (i.e name of stackexchange & tags)?
 - [x] add flags to change min_score / max_responses args.
 - [x] ~~add flags to turn off downloading / extraction~~ add flag to keep sources after download 
-- [] add flags to select number of workers for multiprocessing
+- [x] add flags to select number of workers for multiprocessing
 - [x] output as [lm dataformat](https://github.com/leogao2/lm_dataformat)
 - [x] output as structured JSON output
