@@ -3,9 +3,9 @@ import xml.etree.ElementTree as etree
 from collections import defaultdict
 
 from bs4 import BeautifulSoup
-from lm_dataformat import SUPPORTED_FORMATS, LM_DATAFORMAT_FORMAT, JSON_FORMAT, TEXT_FORMAT, TextArchive
 from tqdm import tqdm
 
+from lm_dataformat import SUPPORTED_FORMATS, TEXT_FORMAT
 from utils import *
 
 
