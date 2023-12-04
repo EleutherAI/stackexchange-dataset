@@ -41,12 +41,10 @@ def download_and_process_single(name, out_format, min_score, max_responses, keep
             s.download()
             # s.remove_dump()
 
-        if out_format == LM_DATAFORMAT_FORMAT:
+        if out_format == JSONL_FORMAT:
             archiver = Archive(out_folder)
         elif out_format == TEXT_FORMAT:
             archiver = TextArchive(out_folder)
-        elif out_format == JSON_FORMAT:
-            archiver = JSONArchive(out_folder)
         else:
             archiver = None
 

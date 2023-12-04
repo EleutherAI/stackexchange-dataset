@@ -147,10 +147,8 @@ class QA_Pairer():
 
                         if self.out_format == TEXT_FORMAT:
                             self.ar.add_data(qa_structure)
-                        elif self.out_format == JSON_FORMAT:
-                            self.ar.add_data(qa_structure)
-                        elif self.out_format == LM_DATAFORMAT_FORMAT:
-                            self.ar.add_data(TextArchive.to_text(qa_structure), meta={'name': out_name})
+                        else:
+                            self.ar.add_data(qa_structure, meta={'name': out_name})
 
         for key in keys_to_del:
             self.questions.pop(key, None)
