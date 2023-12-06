@@ -3,6 +3,7 @@ import xml.etree.ElementTree as etree
 from collections import defaultdict
 
 from bs4 import BeautifulSoup
+from py7zr import py7zr
 from tqdm import tqdm
 
 from lm_dataformat import SUPPORTED_FORMATS, TEXT_FORMAT
@@ -11,12 +12,13 @@ from utils import *
 
 class QA_Pairer():
 
-    def __init__(self, xml_path, name=None, out_folder="out", min_score=3, max_responses=3, out_format=TEXT_FORMAT,
-                 archiver=None):
+    def __init__(self, path, name=None, out_folder="out", min_score=3, max_responses=3, out_format=TEXT_FORMAT,
+                 archiver=None, compressed=False):
         """Makes a text dataset from StackExchange dumps"""
-        self.xml_path = xml_path
+        self.path = path
+        self.compressed = compressed
         if name is None:
-            self.name = os.path.dirname(xml_path).replace("dumps/", "")
+            self.name = os.path.dirname(path).replace("dumps/", "")
         else:
             self.name = name
         # dict to save questions
@@ -44,7 +46,16 @@ class QA_Pairer():
 
         """
         os.makedirs(self.out_folder, exist_ok=True)
-        for event, elem in tqdm(etree.iterparse(self.xml_path, events=('end',)),
+
+        if self.compressed:
+            with py7zr.SevenZipFile(self.path, mode='r') as z:
+                for name, fd in z.read(name for name in z.getnames() if name.endswith("Posts.xml")).items():
+                    self.process_xml(fd)
+        else:
+            self.process_xml(self.path)
+
+    def process_xml(self, fd):
+        for event, elem in tqdm(etree.iterparse(fd, events=('end',)),
                                 desc="Parsing {} XML file".format(self.name)):
             if elem.tag == "row":
                 try:

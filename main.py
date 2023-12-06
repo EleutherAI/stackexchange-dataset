@@ -14,7 +14,7 @@ from pairer import QA_Pairer
 dotenv.load_dotenv(override=True)
 
 
-def download_and_process_single(name, out_format, min_score, max_responses, keep_sources=False):
+def download_and_process_single(name, out_format, min_score, max_responses, keep_sources=False, stream=False):
     try:
         name = name.strip().lower()
         os.makedirs("dumps", exist_ok=True)
@@ -48,11 +48,11 @@ def download_and_process_single(name, out_format, min_score, max_responses, keep
         else:
             archiver = None
 
-        if not os.path.isfile(path_to_xml):
+        if not os.path.isfile(path_to_xml) and stream:
             # extract 7z if it's not extracted already
             s.extract()
 
-        qa = QA_Pairer(path_to_xml, name=name, out_format=out_format, archiver=archiver, min_score=min_score,
+        qa = QA_Pairer(path_to_7z if stream else path_to_xml, compressed=stream, name=name, out_format=out_format, archiver=archiver, min_score=min_score,
                        max_responses=max_responses)
         qa.process()
         archiver.commit(name)
@@ -64,11 +64,12 @@ def download_and_process_single(name, out_format, min_score, max_responses, keep
                 print('ERROR: FileNotFoundError: File {} not found'.format(s.sites[name]["url"]))
 
         directory_uncompressed = "dumps/{}".format(name)
-        filelist = [f for f in os.listdir(directory_uncompressed)
+        if os.path.exists(directory_uncompressed):
+            filelist = [f for f in os.listdir(directory_uncompressed)
                     if f.endswith(".xml")]
-        for f in filelist:
-            os.remove(os.path.join(directory_uncompressed, f))
-        os.removedirs(directory_uncompressed)
+            for f in filelist:
+                os.remove(os.path.join(directory_uncompressed, f))
+            os.removedirs(directory_uncompressed)
     except:
         traceback.print_exc()
 
@@ -103,7 +104,7 @@ def main(args):
     p = Pool(cpu_no)
     p.starmap(download_and_process_single,
               zip(names, repeat(args.out_format), repeat(args.min_score), repeat(args.max_responses),
-                  repeat(args.keep_sources)))
+                  repeat(args.keep_sources), repeat(args.stream)))
 
 
 if __name__ == "__main__":
@@ -157,6 +158,11 @@ if __name__ == "__main__":
                         required=False,
                         default=-1,
                         type=int)
+    parser.add_argument('--stream',
+                        help="Stream the file Posts.xml directly from the 7z without uncompressing it. Experimental feature.",
+                        required=False,
+                        action="store_true",
+                        default=False)
     args = parser.parse_args()
 
     main(args)
